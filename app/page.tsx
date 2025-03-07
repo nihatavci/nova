@@ -11,11 +11,17 @@ export default function Home() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
           {/* Left side - Content */}
           <div className="text-left">
-            <h1 className="text-4xl font-extrabold tracking-tight text-gray-900 sm:text-5xl md:text-6xl">
-              <span className="block mb-2">SİK SİK SİK</span>
-              <span className="inline-block bg-gradient-to-r from-yellow-300 via-yellow-200 to-yellow-300 px-4 py-2 rounded-lg shadow-sm">
-                <span className="text-gray-800">for Expats</span>
-              </span>
+            <h1 className="text-4xl font-extrabold tracking-tight text-gray-900 sm:text-5xl md:text-5xl">
+              <span className="block mb-3">Free RRS Score</span>
+              <div className="flex items-center">
+                <span 
+                  className="inline-flex items-center bg-gradient-to-r from-yellow-400 to-yellow-300 px-5 py-2 rounded-lg shadow-md transform -rotate-1 w-auto"
+                  style={{ transformOrigin: 'center' }}
+                >
+                  <span className="text-gray-800 text-2xl sm:text-3xl md:text-4xl font-bold">for Expats</span>
+                  <span className="ml-2 text-gray-800 text-2xl sm:text-3xl md:text-4xl font-bold">in Germany</span>
+                </span>
+              </div>
             </h1>
             <p className="mt-5 text-base text-gray-600 sm:text-lg md:text-xl max-w-2xl">
               Discover how to save €10k+ annually with our tailored financial solutions. No jargon, no commission - just clear financial advice.

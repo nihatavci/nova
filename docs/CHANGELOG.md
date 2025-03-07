@@ -37,8 +37,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Changed calculator container from fixed height to auto height with minimum height
 - Reduced option button sizes for better fit in the container
 - Improved spacing and padding in the calculator layout
-- Updated homepage statement from "Premium Financial Advisory for German Expats" to "Free Financial Retirement Readiness Score for Expats"
-- Refined homepage title highlighting to only highlight "for Expats" with a golden gradient
+- Updated homepage title to "Free RRS Score" with only "for Expats" highlighted in golden gradient
+- Improved homepage title layout to show "for Expats in Germany" as one continuous line
+- Enhanced title design with stronger golden gradient, better spacing, and improved shadow
+- Applied slight counter-clockwise rotation to "for Expats" text for a more dynamic look
+- Adjusted left margin of highlighted text for better visual balance
+- Optimized title font sizes for better balance between visibility and fit
+- Adjusted padding to accommodate larger font sizes while maintaining proper layout
+- Made "in Germany" text consistent with "for Expats" text by applying the same font weight and size
+- Increased font size of "for Expats in Germany" text to match the size of "Free RRS Score" for better visual hierarchy
 
 ### Fixed
 - Fixed missing options in the multi-step form
@@ -53,6 +60,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed TypeScript type error for pg module
 - Fixed prerendering error for calculator page by setting dynamic export
 - Fixed mobile navigation to calculator with anchor link
+- Fixed container width issues with title text by optimizing font and container sizes
+- Fixed title text being too small by increasing font size while maintaining proper layout
+- Fixed inconsistent text styling between "for Expats" and "in Germany" by making them visually equal
+- Fixed disproportionate text size between main title and subtitle by making "for Expats in Germany" larger
 
 ### Removed
 - Removed standalone calculator page to resolve build errors (using the embedded calculator component instead)
