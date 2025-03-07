@@ -12,14 +12,24 @@ export default function Home() {
           {/* Left side - Content */}
           <div className="text-left">
             <h1 className="text-4xl font-extrabold tracking-tight text-gray-900 sm:text-5xl md:text-6xl">
-              <span className="block mb-2">Premium Financial Advisory</span>
-              <span className="inline-block bg-gradient-to-r from-gray-300 via-gray-200 to-gray-300 px-4 py-2 rounded-lg shadow-sm">
-                <span className="text-gray-800">for German Expats</span>
+              <span className="block mb-2">SİK SİK SİK</span>
+              <span className="inline-block bg-gradient-to-r from-yellow-300 via-yellow-200 to-yellow-300 px-4 py-2 rounded-lg shadow-sm">
+                <span className="text-gray-800">for Expats</span>
               </span>
             </h1>
             <p className="mt-5 text-base text-gray-600 sm:text-lg md:text-xl max-w-2xl">
               Discover how to save €10k+ annually with our tailored financial solutions. No jargon, no commission - just clear financial advice.
             </p>
+            
+            {/* Mobile calculator button - only visible on mobile */}
+            <div className="mt-6 block lg:hidden">
+              <a 
+                href="#calculator-section" 
+                className="inline-flex items-center justify-center w-full px-6 py-3 text-base font-medium text-white bg-gradient-to-r from-gray-600 to-gray-800 rounded-lg shadow-md hover:from-gray-700 hover:to-gray-900 transition-all"
+              >
+                Take Me to the Calculator
+              </a>
+            </div>
             
             {/* Trust indicators */}
             <div className="mt-8 flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4">
@@ -68,7 +78,7 @@ export default function Home() {
           </div>
           
           {/* Right side - Calculator */}
-          <div className="w-full bg-white rounded-xl shadow-md overflow-hidden border border-gray-100 mt-6 lg:mt-0">
+          <div id="calculator-section" className="w-full bg-white rounded-xl shadow-md overflow-hidden border border-gray-100 mt-6 lg:mt-0">
             <EnhancedRetirementCalculator />
           </div>
         </div>

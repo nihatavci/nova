@@ -21,6 +21,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added missing dependencies: drizzle-orm and pg for database functionality
 - Added TypeScript type definitions for pg (@types/pg)
 - Added dynamic export configuration for calculator page
+- Added mobile-friendly "Take Me to the Calculator" button with anchor link
 
 ### Changed
 - Enhanced the price range slider with a larger size and silver dot
@@ -36,6 +37,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Changed calculator container from fixed height to auto height with minimum height
 - Reduced option button sizes for better fit in the container
 - Improved spacing and padding in the calculator layout
+- Updated homepage statement from "Premium Financial Advisory for German Expats" to "Free Financial Retirement Readiness Score for Expats"
+- Refined homepage title highlighting to only highlight "for Expats" with a golden gradient
 
 ### Fixed
 - Fixed missing options in the multi-step form
@@ -49,6 +52,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed build error by adding missing database dependencies
 - Fixed TypeScript type error for pg module
 - Fixed prerendering error for calculator page by setting dynamic export
+- Fixed mobile navigation to calculator with anchor link
 
 ### Removed
 - Removed standalone calculator page to resolve build errors (using the embedded calculator component instead)
