@@ -49,3 +49,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed build error by adding missing database dependencies
 - Fixed TypeScript type error for pg module
 - Fixed prerendering error for calculator page by setting dynamic export
+
+### Removed
+- Removed standalone calculator page to resolve build errors (using the embedded calculator component instead)
