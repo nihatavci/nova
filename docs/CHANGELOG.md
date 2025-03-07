@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Retirement goal options with descriptions
 - Slider for monthly investment input
 - Dashboard navigation from homepage and calculator results
+- Added missing dependencies: drizzle-orm and pg for database functionality
 
 ### Changed
 - Enhanced the price range slider with a larger size and silver dot
@@ -43,3 +44,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed navigation buttons styling to match the design in the screenshots
 - Fixed footer positioning with proper margin
 - Fixed TypeScript error in calculator page for Vercel deployment by safely accessing searchParams
+- Fixed build error by adding missing database dependencies
