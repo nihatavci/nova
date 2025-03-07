@@ -1,0 +1,49 @@
+YOOOO!
+
+# Nova Project Structure
+
+```
+nova/
+├── app/                    # Next.js app directory
+├── components/            # Shared React components
+├── lib/                   # Utility functions and shared logic
+├── models/               # Data models and types
+├── features/             # Feature-specific components and logic
+├── locales/              # Internationalization files
+├── public/               # Static assets
+├── docs/                 # Documentation
+│   ├── CHANGELOG.md      # Project changelog
+│   └── PROJECT_SCOPE.md  # Project scope and requirements
+├── .env.example          # Environment variables template
+├── .gitignore           # Git ignore rules
+├── next.config.js       # Next.js configuration
+├── package.json         # Project dependencies and scripts
+├── postcss.config.js    # PostCSS configuration
+├── README.md            # Project overview and setup instructions
+├── tailwind.config.js   # Tailwind CSS configuration
+└── tsconfig.json        # TypeScript configuration
+```
+
+## Key Directories
+
+- `app/`: Contains the Next.js application routes and pages
+- `components/`: Reusable React components
+- `lib/`: Shared utilities, hooks, and helper functions
+- `models/`: TypeScript interfaces, types, and data models
+- `features/`: Feature-specific components and business logic
+- `locales/`: Internationalization files for multiple languages
+- `public/`: Static assets like images, fonts, and icons
+- `docs/`: Project documentation and specifications
+
+## Development Setup
+
+1. Clone the repository
+2. Copy `.env.example` to `.env` and configure environment variables
+3. Install dependencies: `npm install` or `yarn install`
+4. Start development server: `npm run dev` or `yarn dev`
+
+## Documentation
+
+- `CHANGELOG.md`: Tracks all notable changes to the project
+- `PROJECT_SCOPE.md`: Defines project requirements and architecture
+- `README.md`: Project overview and setup instructions 
