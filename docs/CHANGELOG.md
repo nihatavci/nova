@@ -42,3 +42,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed content cropping issues in the calculator by adjusting container overflow settings
 - Fixed navigation buttons styling to match the design in the screenshots
 - Fixed footer positioning with proper margin
+- Fixed TypeScript error in calculator page for Vercel deployment by safely accessing searchParams

@@ -118,7 +118,7 @@ const LoadingFallback = () => (
 
 export default function CalculatorPage() {
   const searchParams = useSearchParams();
-  const typeParam = searchParams.get('type') as CalculatorType | null;
+  const typeParam = searchParams?.get('type') as CalculatorType | null;
   
   const [activeCalculator, setActiveCalculator] = useState<CalculatorType>(typeParam || null);
   const [currentStep, setCurrentStep] = useState(0);
