@@ -19,6 +19,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Slider for monthly investment input
 - Dashboard navigation from homepage and calculator results
 - Added missing dependencies: drizzle-orm and pg for database functionality
+- Added TypeScript type definitions for pg (@types/pg)
+- Added dynamic export configuration for calculator page
 
 ### Changed
 - Enhanced the price range slider with a larger size and silver dot
@@ -45,3 +47,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed footer positioning with proper margin
 - Fixed TypeScript error in calculator page for Vercel deployment by safely accessing searchParams
 - Fixed build error by adding missing database dependencies
+- Fixed TypeScript type error for pg module
+- Fixed prerendering error for calculator page by setting dynamic export

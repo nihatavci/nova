@@ -9,6 +9,9 @@ import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { useSearchParams } from 'next/navigation';
 
+// Tell Next.js not to statically generate this page
+export const dynamic = 'force-dynamic';
+
 type CalculatorType = 'tax' | 'investment' | 'pension' | 'mortgage' | null;
 
 interface Question {
