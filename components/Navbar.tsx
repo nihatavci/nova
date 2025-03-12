@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useState } from 'react';
 import { usePathname } from 'next/navigation';
+import { FaAward, FaChartLine, FaShieldAlt, FaBars, FaTimes } from 'react-icons/fa';
 
 export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -21,120 +22,88 @@ export default function Navbar() {
     { href: '/dashboard', label: 'Dashboard' },
     { href: '/calculator', label: 'Calculator' },
     { href: '/about', label: 'About' },
-    { href: '/contact', label: 'Contact' }
+    { href: '/contact', label: 'Contact' },
+    { href: '/api-docs', label: 'API Docs' }
   ];
   
   return (
-    <nav className="bg-white shadow-sm">
+    <nav className="bg-[#0A1E3C] shadow-lg">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between h-16">
-          <div className="flex">
-            <div className="flex-shrink-0 flex items-center">
-              <Link href="/" className="text-2xl font-bold text-blue-600">
-                Nova
-              </Link>
-            </div>
-            <div className="hidden sm:ml-6 sm:flex sm:space-x-8">
-              {navLinks.map((link) => (
-                <Link
-                  key={link.href}
-                  href={link.href}
-                  className={`inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium ${
-                    isActive(link.href)
-                      ? 'border-blue-500 text-gray-900'
-                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                  }`}
-                >
-                  {link.label}
-                </Link>
-              ))}
-            </div>
-          </div>
-          
-          <div className="flex items-center">
-            <div className="hidden sm:ml-6 sm:flex sm:items-center">
-              <button
-                onClick={() => alert('Sign in modal would open here')}
-                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-              >
-                Sign In
-              </button>
-            </div>
-            
-            <div className="-mr-2 flex items-center sm:hidden">
-              <button
-                onClick={toggleMenu}
-                type="button"
-                className="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500"
-                aria-expanded="false"
-              >
-                <span className="sr-only">Open main menu</span>
-                {/* Icon when menu is closed */}
-                <svg
-                  className={`${isMenuOpen ? 'hidden' : 'block'} h-6 w-6`}
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                  aria-hidden="true"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M4 6h16M4 12h16M4 18h16"
-                  />
-                </svg>
-                {/* Icon when menu is open */}
-                <svg
-                  className={`${isMenuOpen ? 'block' : 'hidden'} h-6 w-6`}
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                  aria-hidden="true"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M6 18L18 6M6 6l12 12"
-                  />
-                </svg>
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-      
-      {/* Mobile menu, show/hide based on menu state */}
-      <div className={`${isMenuOpen ? 'block' : 'hidden'} sm:hidden`}>
-        <div className="pt-2 pb-3 space-y-1">
-          {navLinks.map((link) => (
-            <Link
-              key={link.href}
-              href={link.href}
-              className={`block pl-3 pr-4 py-2 border-l-4 text-base font-medium ${
-                isActive(link.href)
-                  ? 'border-blue-500 text-blue-700 bg-blue-50'
-                  : 'border-transparent text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-800'
-              }`}
-            >
-              {link.label}
+        <div className="flex justify-between h-20 items-center">
+          {/* Logo */}
+          <div className="flex-shrink-0">
+            <Link href="/" className="flex items-center">
+              <FaAward className="h-8 w-8 text-[#E5B94B]" />
+              <span className="ml-2 text-xl font-bold text-white">Nova <span className="text-[#E5B94B]">Financial</span></span>
             </Link>
-          ))}
-        </div>
-        <div className="pt-4 pb-3 border-t border-gray-200">
-          <div className="mt-3 space-y-1">
+          </div>
+
+          {/* Navigation Items - Desktop */}
+          <div className="hidden md:flex items-center space-x-8">
+            {navLinks.map((link) => (
+              <Link
+                key={link.href}
+                href={link.href}
+                className={`text-sm font-medium transition-colors duration-200 ${
+                  isActive(link.href)
+                    ? 'text-[#E5B94B] border-b-2 border-[#E5B94B] pb-1'
+                    : 'text-gray-300 hover:text-[#E5B94B]'
+                }`}
+              >
+                {link.label}
+              </Link>
+            ))}
+            <button className="bg-gradient-to-r from-[#E5B94B] to-[#D4AF37] text-[#0A1E3C] px-4 py-2 rounded-md font-medium shadow-md hover:from-[#D4AF37] hover:to-[#C4A137] transition-all duration-300 flex items-center">
+              <FaChartLine className="mr-2" />
+              Get Started
+            </button>
+          </div>
+
+          {/* Mobile Menu Button */}
+          <div className="md:hidden">
             <button
-              onClick={() => alert('Sign in modal would open here')}
-              className="block w-full text-left px-4 py-2 text-base font-medium text-gray-500 hover:text-gray-800 hover:bg-gray-100"
+              type="button"
+              onClick={toggleMenu}
+              className="text-gray-300 hover:text-[#E5B94B] focus:outline-none"
+              aria-label="Toggle menu"
             >
-              Sign In
+              {isMenuOpen ? (
+                <FaTimes className="h-6 w-6" />
+              ) : (
+                <FaBars className="h-6 w-6" />
+              )}
             </button>
           </div>
         </div>
       </div>
+
+      {/* Mobile Menu */}
+      {isMenuOpen && (
+        <div className="md:hidden bg-[#0A1E3C] border-t border-[#1A2E4C]">
+          <div className="px-2 pt-2 pb-3 space-y-1">
+            {navLinks.map((link) => (
+              <Link
+                key={link.href}
+                href={link.href}
+                className={`block px-3 py-2 rounded-md text-base font-medium ${
+                  isActive(link.href)
+                    ? 'text-[#E5B94B] bg-[#1A2E4C]'
+                    : 'text-gray-300 hover:text-[#E5B94B] hover:bg-[#1A2E4C]'
+                }`}
+                onClick={toggleMenu}
+              >
+                {link.label}
+              </Link>
+            ))}
+            <div className="px-3 py-3">
+              <button className="w-full bg-gradient-to-r from-[#E5B94B] to-[#D4AF37] text-[#0A1E3C] px-4 py-2 rounded-md font-medium shadow-md hover:from-[#D4AF37] hover:to-[#C4A137] transition-all duration-300 flex items-center justify-center">
+                <FaChartLine className="mr-2" />
+                Get Started
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </nav>
   );
 } 

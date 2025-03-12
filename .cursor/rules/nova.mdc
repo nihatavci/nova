@@ -10,7 +10,7 @@ alwaysApply: true
 - Alway gather error logs and fix them via browser tool MCP
 - if i askthe same question again and again, don't get into loophole, Reflect on 5-7 different possible source of the problem, distill those down to 1-2 most likely sources, and the add logs to validate your assumptions before we move onto the implementing the actual code fix.
 
-- check out test.md and task.md before implementing code.
+- check out task.md before implementing code.
 
 # Nova - Project Scope
 
@@ -23,6 +23,7 @@ To maintain project context across conversations, always start a new chat with t
 You are working on the Nova project
 Read CHANGELOG.md and PROJECT_SCOPE.md now, report your findings, and strictly follow all instructions found in these documents.  
 You must complete the check-in process before proceeding with any task.  
+You must read [product.md](mdc:.cursor/rules/product.md) and understand what we are gonna build on calculator
 
 Begin check-in process and document analysis.
 ```

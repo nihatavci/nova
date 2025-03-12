@@ -1,154 +1,93 @@
 'use client';
 
-import React, { useState } from 'react';
-import { motion } from 'framer-motion';
-import Link from 'next/link';
-import { 
-  BarChart3, 
-  PieChart, 
-  TrendingUp, 
-  Download, 
-  FileText, 
-  Settings, 
-  Bell, 
-  User,
-  Calendar,
-  Euro,
-  ArrowUpRight,
-  ArrowDownRight,
-  Clock,
-  Lock
-} from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { formatCurrency, formatPercentage } from '@/lib/api-helpers';
+import { RetirementScoreResponse } from '@/lib/api-types';
 
 export default function DashboardPage() {
-  const [activeTab, setActiveTab] = useState('overview');
+  const [assessmentResults, setAssessmentResults] = useState<RetirementScoreResponse['data'] | null>(null);
+
+  useEffect(() => {
+    const savedResults = localStorage.getItem('retirementCalculatorResults');
+    if (savedResults) {
+      try {
+        const parsedResults = JSON.parse(savedResults);
+        setAssessmentResults(parsedResults);
+      } catch (error) {
+        console.error('Error parsing saved results:', error);
+      }
+    }
+  }, []);
+
+  if (!assessmentResults) {
+    return (
+      <div className="min-h-screen bg-gray-50 py-12 animate-fadeIn">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center">
+            <h2 className="text-3xl font-bold text-gray-900">No Results Found</h2>
+            <p className="mt-4 text-lg text-gray-600">
+              Please complete the retirement calculator to view your personalized dashboard.
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="bg-white rounded-xl shadow-lg p-8 mb-8">
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900">Financial Dashboard</h1>
-              <p className="text-gray-600 mt-1">Access to your personalized financial insights</p>
-            </div>
-            
-            <div className="mt-4 md:mt-0 flex flex-col sm:flex-row gap-4">
-              <Link 
-                href="/contact" 
-                className="inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-gradient-to-r from-gray-700 to-gray-900 hover:from-gray-800 hover:to-gray-950 shadow-sm"
-              >
-                <Lock className="mr-2 h-4 w-4" />
-                Sign Up for Full Access
-              </Link>
-            </div>
+    <div className="min-h-screen bg-gray-50 py-12 animate-fadeIn">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="text-center mb-12">
+          <h2 className="text-3xl font-bold text-gray-900">Your Retirement Dashboard</h2>
+          <p className="mt-4 text-lg text-gray-600">
+            Track your progress and optimize your retirement strategy
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="bg-white rounded-lg shadow-md p-6 hover:scale-102 transition-transform">
+            <h3 className="text-lg font-medium text-gray-900">Potential Annual Savings</h3>
+            <p className="mt-2 text-3xl font-bold text-gray-900">
+              {formatCurrency(assessmentResults.potentialSavings)}
+            </p>
           </div>
-          
-          {/* Locked Content Notice */}
-          <div className="bg-gray-50 border border-gray-200 rounded-lg p-6 mb-8">
-            <div className="flex items-center">
-              <div className="flex-shrink-0 bg-gray-100 rounded-full p-3">
-                <Lock className="h-6 w-6 text-gray-500" />
+
+          <div className="bg-white rounded-lg shadow-md p-6 hover:scale-102 transition-transform">
+            <h3 className="text-lg font-medium text-gray-900">Net Monthly Income</h3>
+            <p className="mt-2 text-3xl font-bold text-gray-900">
+              {formatCurrency(assessmentResults.netMonthlyIncome)}
+            </p>
+          </div>
+
+          <div className="bg-white rounded-lg shadow-md p-6 hover:scale-102 transition-transform">
+            <h3 className="text-lg font-medium text-gray-900">Projected Savings</h3>
+            <p className="mt-2 text-3xl font-bold text-gray-900">
+              {formatCurrency(assessmentResults.projectedSavings)}
+            </p>
+          </div>
+
+          <div className="bg-white rounded-lg shadow-md p-6 hover:scale-102 transition-transform">
+            <h3 className="text-lg font-medium text-gray-900">Income Replacement</h3>
+            <p className="mt-2 text-3xl font-bold text-gray-900">
+              {formatPercentage(assessmentResults.incomeReplacementRate)}
+            </p>
+          </div>
+        </div>
+
+        <div className="mt-12 bg-white rounded-lg shadow-md p-8 hover:scale-102 transition-transform">
+          <h3 className="text-xl font-bold text-gray-900 mb-6">Recommendations</h3>
+          <div className="space-y-6">
+            {assessmentResults.recommendations.map((recommendation, index) => (
+              <div key={index} className="border-l-4 border-gray-800 pl-4">
+                <h4 className="text-lg font-medium text-gray-900">{recommendation.title}</h4>
+                <p className="mt-2 text-gray-600">{recommendation.description}</p>
+                <ul className="mt-4 list-disc list-inside space-y-2">
+                  {recommendation.actionItems.map((item, itemIndex) => (
+                    <li key={itemIndex} className="text-gray-600">{item}</li>
+                  ))}
+                </ul>
               </div>
-              <div className="ml-4">
-                <h3 className="text-lg font-medium text-gray-900">Premium Content Locked</h3>
-                <p className="text-gray-600 mt-1">
-                  Sign up for a premium account to access your personalized financial dashboard, detailed reports, and expert recommendations.
-                </p>
-                <div className="mt-3">
-                  <Link 
-                    href="/contact" 
-                    className="inline-flex items-center text-sm font-medium text-gray-700 hover:text-gray-900"
-                  >
-                    Learn more about premium benefits
-                    <svg className="ml-1 h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                      <path fillRule="evenodd" d="M10.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L12.586 11H5a1 1 0 110-2h7.586l-2.293-2.293a1 1 0 010-1.414z" clipRule="evenodd" />
-                    </svg>
-                  </Link>
-                </div>
-              </div>
-            </div>
-          </div>
-          
-          {/* Sample Dashboard Preview */}
-          <div className="mb-8">
-            <h2 className="text-xl font-semibold text-gray-800 mb-4">Dashboard Preview</h2>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <motion.div 
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.3 }}
-                className="bg-white rounded-lg border border-gray-200 shadow-sm p-6"
-              >
-                <div className="flex justify-between items-start">
-                  <div>
-                    <p className="text-sm font-medium text-gray-500">Total Savings</p>
-                    <h3 className="text-2xl font-bold text-gray-900 mt-1">€8,240</h3>
-                    <span className="inline-flex items-center text-sm font-medium text-green-600 mt-1">
-                      <ArrowUpRight className="h-4 w-4 mr-1" />
-                      +12.5%
-                    </span>
-                  </div>
-                  <div className="bg-gray-100 rounded-full p-3">
-                    <Euro className="h-6 w-6 text-gray-500" />
-                  </div>
-                </div>
-              </motion.div>
-              
-              <motion.div 
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.3, delay: 0.1 }}
-                className="bg-white rounded-lg border border-gray-200 shadow-sm p-6"
-              >
-                <div className="flex justify-between items-start">
-                  <div>
-                    <p className="text-sm font-medium text-gray-500">Tax Optimization</p>
-                    <h3 className="text-2xl font-bold text-gray-900 mt-1">€3,120</h3>
-                    <span className="inline-flex items-center text-sm font-medium text-green-600 mt-1">
-                      <ArrowUpRight className="h-4 w-4 mr-1" />
-                      +8.3%
-                    </span>
-                  </div>
-                  <div className="bg-gray-100 rounded-full p-3">
-                    <FileText className="h-6 w-6 text-gray-500" />
-                  </div>
-                </div>
-              </motion.div>
-              
-              <motion.div 
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.3, delay: 0.2 }}
-                className="bg-white rounded-lg border border-gray-200 shadow-sm p-6"
-              >
-                <div className="flex justify-between items-start">
-                  <div>
-                    <p className="text-sm font-medium text-gray-500">Investment Returns</p>
-                    <h3 className="text-2xl font-bold text-gray-900 mt-1">€5,120</h3>
-                    <span className="inline-flex items-center text-sm font-medium text-green-600 mt-1">
-                      <ArrowUpRight className="h-4 w-4 mr-1" />
-                      +15.2%
-                    </span>
-                  </div>
-                  <div className="bg-gray-100 rounded-full p-3">
-                    <TrendingUp className="h-6 w-6 text-gray-500" />
-                  </div>
-                </div>
-              </motion.div>
-            </div>
-          </div>
-          
-          {/* Call to Action */}
-          <div className="bg-gradient-to-r from-gray-100 to-gray-200 rounded-lg p-6 text-center">
-            <h3 className="text-xl font-semibold text-gray-800 mb-2">Ready to optimize your finances?</h3>
-            <p className="text-gray-600 mb-4">Get personalized recommendations and start saving today.</p>
-            <Link 
-              href="/contact" 
-              className="inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-gradient-to-r from-gray-700 to-gray-900 hover:from-gray-800 hover:to-gray-950 shadow-sm"
-            >
-              Contact Us to Get Started
-            </Link>
+            ))}
           </div>
         </div>
       </div>
