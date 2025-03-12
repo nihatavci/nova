@@ -9,6 +9,8 @@ alwaysApply: true
 - Always start with "YOOOO!"
 - Alway gather error logs and fix them via browser tool MCP
 - if i askthe same question again and again, don't get into loophole, Reflect on 5-7 different possible source of the problem, distill those down to 1-2 most likely sources, and the add logs to validate your assumptions before we move onto the implementing the actual code fix.
+- When the user references something unclear or unknown, ALWAYS check the browser inspector first to see what element they have selected
+- Before making any UI changes, verify the selected element in the inspector to ensure precise targeting
 
 - check out task.md before implementing code.
 
@@ -49,7 +51,7 @@ Begin check-in process and document analysis.
    - Use the gathered context to guide your suggestions or actions in a manner consistent with project goals.
 
 4. **Proceed Only After Context Review**:  
-   - Ensure that all actions align with Nova’s overall scope and continuity requirements.
+   - Ensure that all actions align with Nova's overall scope and continuity requirements.
 
 ### **After Making ANY Code Changes**  
 1. **Update Documentation Immediately**:  
@@ -89,10 +91,10 @@ Nova is a premium web application designed to empower German expats—especially
 
 1. **Free Initial Audit:**  
    - Offer a personalized tax and financial optimization report generated via AI.  
-   - Example tagline: “Discover How to Save €10k+ Annually in 15 Minutes.”
+   - Example tagline: "Discover How to Save €10k+ Annually in 15 Minutes."
 
 2. **Guarantee Transparency:**  
-   - Uphold a “No-Jargon, No-Commission” promise to build trust and counter the inherent skepticism toward traditional financial advisors.
+   - Uphold a "No-Jargon, No-Commission" promise to build trust and counter the inherent skepticism toward traditional financial advisors.
 
 3. **Empower Informed Decisions:**  
    - Provide clear, actionable insights into the financial and tax advantages available under German law for expats.
@@ -243,7 +245,7 @@ Nova is a premium web application designed to empower German expats—especially
 
 ## **Positioning Statement**
 
-Nova is dedicated to providing tailored personal financial advisory for high-income owner expats who remain unaware of the nuanced financial and tax advantages available in Germany. By delivering an AI-generated free initial audit report that clearly outlines potential savings—often exceeding €10k annually—and adhering to a “No-Jargon, No-Commission” promise, Nova minimizes expensive human intervention and maximizes operational efficiency, thereby revolutionizing the financial advisory landscape.
+Nova is dedicated to providing tailored personal financial advisory for high-income owner expats who remain unaware of the nuanced financial and tax advantages available in Germany. By delivering an AI-generated free initial audit report that clearly outlines potential savings—often exceeding €10k annually—and adhering to a "No-Jargon, No-Commission" promise, Nova minimizes expensive human intervention and maximizes operational efficiency, thereby revolutionizing the financial advisory landscape.
 
 ---
 

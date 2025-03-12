@@ -8,7 +8,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "format": "prettier --write ."
+    "format": "prettier --write .",
+    "browser-tools": "node lib/browser-tools/browser-tools-server/server.js"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",
@@ -41,7 +42,12 @@
     "react-icons": "^5.5.0",
     "tailwind-merge": "^2.6.0",
     "tailwindcss-animate": "^1.0.7",
-    "zod": "^3.24.2"
+    "zod": "^3.24.2",
+    "@agentdeskai/browser-tools-mcp": "^1.2.0",
+    "@agentdeskai/browser-tools-server": "^1.2.0",
+    "puppeteer": "^22.3.0",
+    "lighthouse": "^11.6.0",
+    "ws": "^8.16.0"
   },
   "devDependencies": {
     "@types/node": "^20.11.25",

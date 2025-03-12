@@ -187,10 +187,12 @@ const MultiStepForm = () => {
 
   // Calculate desired retirement income based on current salary (70% replacement)
   useEffect(() => {
-        setFormData(prev => ({
-          ...prev,
-      desiredRetirementIncome: Math.round(prev.currentSalary * 0.7 / 12)
-    }));
+    if (formData.currentSalary) {
+      setFormData(prev => ({
+        ...prev,
+        desiredRetirementIncome: Math.round(prev.currentSalary * 0.7 / 12)
+      }));
+    }
   }, [formData.currentSalary]);
 
   // Handle loading animation but don't perform calculation
@@ -201,32 +203,52 @@ const MultiStepForm = () => {
         setCurrentTip(prev => (prev + 1) % financialTips.length);
       }, 4000);
       
-      // Progress bar effect
+      // Non-linear progress animation
       const progressInterval = setInterval(() => {
         setLoadingProgress(prev => {
-          const newProgress = Math.min(prev + (prev < 70 ? 5 : prev < 90 ? 3 : 1), 100);
-          
-          // Once we reach 100%, show the "View Results" button
-          if (newProgress === 100) {
-            clearInterval(progressInterval);
+          // Fast initial progress (0-30%)
+          if (prev < 30) {
+            return Math.min(prev + 4, 30);
           }
-          
-          return newProgress;
+          // Slower middle progress (30-60%)
+          else if (prev < 60) {
+            return Math.min(prev + 2, 60);
+          }
+          // Very slow final progress (60-90%)
+          else if (prev < 90) {
+            return Math.min(prev + 0.5, 90);
+          }
+          // Final burst to 100% when calculation is complete
+          else if (calculationComplete) {
+            return 100;
+          }
+          return prev;
         });
-      }, 200);
+      }, 100);
+      
+      // Simulate calculation completion after a reasonable time
+      // This ensures we don't get stuck at 90% if there's an issue with the calculation
+      const calculationTimeout = setTimeout(() => {
+        if (!calculationComplete) {
+          console.log('Forcing calculation completion after timeout');
+          setCalculationComplete(true);
+        }
+      }, 5000); // 5 seconds timeout
       
       return () => {
         clearInterval(tipInterval);
         clearInterval(progressInterval);
+        clearTimeout(calculationTimeout);
       };
     }
-  }, [isCalculating]);
+  }, [isCalculating, calculationComplete, financialTips.length]);
 
-  // Form submission handler
+  // Handle form submission
   const handleSubmit = async () => {
-    setIsCalculating(true);
-    setLoadingProgress(0);
-    setCalculationComplete(false);
+    // Don't reset any states here to avoid flickering
+    // setIsCalculating(true); - removed to prevent state reset
+    // setLoadingProgress(0); - removed to prevent state reset
+    // setCalculationComplete(false); - removed to prevent state reset
 
     try {
       // Convert form data to RetirementInputs
@@ -303,19 +325,32 @@ const MultiStepForm = () => {
       const calculatedResults = calculateRetirementReadiness(inputData);
       setResults(calculatedResults);
     } finally {
-      setIsCalculating(false);
+      // Keep isCalculating true until results are ready to avoid flickering
+      // setIsCalculating(false); - removed to prevent flickering
       setCalculationComplete(true);
     }
   };
 
   // Next step handler
   const handleNext = () => {
-    if (step < steps.length - 1) {
+    console.log('handleNext called:', { 
+      currentStep: step, 
+      totalSteps: steps.length,
+      isCalculating,
+      calculationComplete 
+    });
+
+    // For the last step, don't automatically start calculation
+    if (step >= steps.length - 1) {
+      return; // Just return without starting calculation
+    }
+
+    // For other steps, proceed as normal
+    if (step >= 0 && step < steps.length - 1) {
       setStep(step + 1);
     } else {
-      // Start calculation
-      setIsCalculating(true);
-      setLoadingProgress(0);
+      console.warn(`Invalid step value: ${step}. Resetting to step 0.`);
+      setStep(0);
     }
   };
 
@@ -344,12 +379,25 @@ const MultiStepForm = () => {
 
   // Handle option selection and auto-advance to next step
   const handleOptionSelect = (field: keyof FormData, value: any) => {
+    console.log('handleOptionSelect called:', { field, value, currentStep: step });
     const updatedFormData = { ...formData, [field]: value };
     setFormData(updatedFormData);
     
+    // Log state before last step transition
+    if (step === steps.length - 1) {
+      console.log('Last step detected, current states:', {
+        step,
+        isCalculating,
+        formData: updatedFormData,
+        calculationComplete
+      });
+    }
+    
     // Auto advance to next step after selection for all option fields
-    // Use a shorter delay for a more responsive experience
-    setTimeout(() => handleNext(), 300);
+    setTimeout(() => {
+      console.log('Auto-advance timeout executing, current step:', step);
+      handleNext();
+    }, 300);
   };
 
   // Reset form handler
@@ -369,7 +417,12 @@ const MultiStepForm = () => {
             style={{ borderTopWidth: '4px', animationDuration: '1.5s' }}
           ></div>
           <div className="absolute top-0 left-0 w-full h-full flex items-center justify-center">
-            <span className="text-xl font-bold text-[#0A1E3C]">{loadingProgress}%</span>
+            {loadingProgress < 100 && (
+              <span className="text-xl font-bold text-[#0A1E3C]">{Math.floor(loadingProgress)}%</span>
+            )}
+            {loadingProgress >= 100 && (
+              <span className="text-xl font-bold text-[#0A1E3C]">✓</span>
+            )}
           </div>
         </div>
       </div>
@@ -382,30 +435,14 @@ const MultiStepForm = () => {
       <div className="bg-[#F9F9FA] p-4 rounded-lg max-w-md mb-6">
         <div className="flex items-start">
           <span className="bg-[#E5B94B] p-2 rounded-full text-white mr-3 flex-shrink-0">
-            <FaLightbulb />
+            <FaLightbulb className="h-5 w-5" />
           </span>
-          <div>
-            <h3 className="font-medium text-[#0A1E3C] mb-1 text-lg">Smart Tip</h3>
-            <p className="text-gray-600 text-base">{financialTips[currentTip]}</p>
-          </div>
+          <p className="text-gray-700 text-left">
+            <span className="font-semibold block mb-1">Financial Tip:</span>
+            {financialTips[currentTip]}
+          </p>
         </div>
       </div>
-
-      <div className="w-full max-w-md bg-gray-200 rounded-full h-3.5 mb-4">
-        <div 
-          className="bg-[#E5B94B] h-3.5 rounded-full transition-all duration-300 ease-out" 
-          style={{ width: `${loadingProgress}%` }}
-        ></div>
-      </div>
-
-      {loadingProgress === 100 && (
-        <button
-          onClick={handleSubmit}
-          className="mt-8 px-6 py-3 bg-[#0A1E3C] text-white rounded-md shadow-sm hover:bg-[#0A1E3C]/90 transition-colors flex items-center text-lg"
-        >
-          View Your Results <FaArrowRight className="ml-2" />
-        </button>
-      )}
     </div>
   );
 
@@ -725,24 +762,66 @@ const MultiStepForm = () => {
   const renderStep = () => {
     const currentStepData = steps[step];
     
+    // Instead of early return, use conditional rendering
     return (
       <div>
-        <div className="mb-6">
-          <h2 className="text-2xl font-bold text-[#0A1E3C] mb-2">{currentStepData.question}</h2>
-          <p className="text-gray-600">{currentStepData.shortDesc}</p>
-      </div>
+        {!currentStepData ? (
+          // Handle the case when currentStepData is undefined
+          <div>Loading...</div>
+        ) : (
+          <>
+            <div className="mb-6">
+              <h2 className="text-2xl font-bold text-[#0A1E3C] mb-2">{currentStepData.question}</h2>
+              <p className="text-gray-600">{currentStepData.shortDesc}</p>
+            </div>
 
-        {currentStepData.id === 'age' && renderAgeOptions()}
-        {currentStepData.id === 'currentSalary' && renderNumericInput('currentSalary', 20000, 200000, 5000)}
-        {currentStepData.id === 'currentSavings' && renderNumericInput('currentSavings', 0, 500000, 5000)}
-        {currentStepData.id === 'monthlySavings' && renderNumericInput('monthlySavings', 0, 5000, 100)}
-        {currentStepData.id === 'retirementAge' && renderNumericInput('retirementAge', 55, 75, 1, '', ' years')}
-        {currentStepData.id === 'riskTolerance' && renderRiskToleranceOptions()}
-        {currentStepData.id === 'employmentType' && renderEmploymentOptions()}
-        {currentStepData.id === 'yearsInGermany' && renderNumericInput('yearsInGermany', 0, 50, 1, '', ' years')}
-        {currentStepData.id === 'germanCitizenship' && renderBooleanOptions('germanCitizenship')}
-        {currentStepData.id === 'hasAdditionalIncome' && renderBooleanOptions('hasAdditionalIncome')}
-        {currentStepData.id === 'hasPropertyInvestments' && renderBooleanOptions('hasPropertyInvestments')}
+            {currentStepData.id === 'age' && renderAgeOptions()}
+            {currentStepData.id === 'currentSalary' && renderNumericInput('currentSalary', 20000, 200000, 5000)}
+            {currentStepData.id === 'currentSavings' && renderNumericInput('currentSavings', 0, 500000, 5000)}
+            {currentStepData.id === 'monthlySavings' && renderNumericInput('monthlySavings', 0, 5000, 100)}
+            {currentStepData.id === 'retirementAge' && renderNumericInput('retirementAge', 55, 75, 1, '', ' years')}
+            {currentStepData.id === 'riskTolerance' && renderRiskToleranceOptions()}
+            {currentStepData.id === 'employmentType' && renderEmploymentOptions()}
+            {currentStepData.id === 'yearsInGermany' && renderNumericInput('yearsInGermany', 0, 50, 1, '', ' years')}
+            {currentStepData.id === 'germanCitizenship' && renderBooleanOptions('germanCitizenship')}
+            {currentStepData.id === 'hasAdditionalIncome' && renderBooleanOptions('hasAdditionalIncome')}
+            {currentStepData.id === 'hasPropertyInvestments' && renderPropertyInvestments()}
+          </>
+        )}
+      </div>
+    );
+  };
+
+  // Render property investments options
+  const renderPropertyInvestments = () => {
+    return (
+      <div className="space-y-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <button
+            onClick={() => handleOptionSelect('hasPropertyInvestments', true)}
+            className={`
+              flex flex-col items-center justify-center p-6 rounded-xl transition-all duration-200
+              ${formData.hasPropertyInvestments === true
+                ? 'bg-gradient-to-r from-[#E5B94B] to-[#D4AF37] text-[#0A1E3C] shadow-md'
+                : 'bg-white border border-gray-200 text-gray-800 hover:bg-gray-50'
+              }
+            `}
+          >
+            <span className="font-medium text-lg">Yes</span>
+          </button>
+          <button
+            onClick={() => handleOptionSelect('hasPropertyInvestments', false)}
+            className={`
+              flex flex-col items-center justify-center p-6 rounded-xl transition-all duration-200
+              ${formData.hasPropertyInvestments === false
+                ? 'bg-gradient-to-r from-[#E5B94B] to-[#D4AF37] text-[#0A1E3C] shadow-md'
+                : 'bg-white border border-gray-200 text-gray-800 hover:bg-gray-50'
+              }
+            `}
+          >
+            <span className="font-medium text-lg">No</span>
+          </button>
+        </div>
       </div>
     );
   };
@@ -776,6 +855,14 @@ const MultiStepForm = () => {
   // Get current step data
   const currentStepData = steps[step];
 
+  // Ensure step is within valid bounds
+  useEffect(() => {
+    if (step < 0 || step >= steps.length) {
+      console.warn(`Step ${step} is out of bounds. Resetting to step 0.`);
+      setStep(0);
+    }
+  }, [step, steps.length]);
+
   // Set form data when step changes
   useEffect(() => {
     if (currentStepData?.defaultValues) {
@@ -786,15 +873,46 @@ const MultiStepForm = () => {
     }
   }, [currentStepData]);
 
+  // Trigger handleSubmit when loading progress reaches 100%
+  useEffect(() => {
+    if (loadingProgress === 100 && isCalculating) {
+      // Add a small delay to ensure the UI shows 100% before proceeding
+      const submitTimeout = setTimeout(() => {
+        handleSubmit();
+      }, 500);
+      
+      return () => clearTimeout(submitTimeout);
+    }
+  }, [loadingProgress, isCalculating]);
+
+  // Ensure we show results when they're available
+  useEffect(() => {
+    if (results) {
+      // Only set isCalculating to false after results are available
+      setIsCalculating(false);
+    }
+  }, [results]);
+
+  // Add render logging
+  console.log('Render state:', { 
+    step, 
+    isCalculating, 
+    hasResults: !!results,
+    calculationComplete,
+    loadingProgress 
+  });
+
   // If we have results, show the results page
   if (results) {
+    console.log('Rendering results page');
     return <ResultsPage results={results} onReset={handleReset} />;
   }
 
   // If calculating, show loading screen
   if (isCalculating) {
+    console.log('Rendering loading screen');
     return (
-      <div className="bg-white rounded-lg shadow-lg overflow-hidden">
+      <div className="bg-white rounded-lg shadow-lg overflow-visible">
         <div className="bg-gradient-to-r from-[#0A1E3C] to-[#15294D] text-white p-6">
           <h2 className="text-2xl font-bold mb-2 flex items-center">
             <FaAward className="text-[#E5B94B] mr-2" />
@@ -809,14 +927,19 @@ const MultiStepForm = () => {
     );
   }
 
-  return (
-    <div className="bg-white rounded-lg shadow-lg overflow-hidden">
-      <div className="p-6">
-        {/* Header with introduction and Start Over button */}
-        
+  // Add a new handler for starting the calculation
+  const handleStartCalculation = () => {
+    console.log('Starting calculation...');
+    setIsCalculating(true);
+    setLoadingProgress(0);
+    setCalculationComplete(false);
+  };
 
+  return (
+    <div className="bg-white rounded-lg shadow-lg overflow-visible">
+      <div className="p-6">
         {/* Main content */}
-        <div className="max-w-3xl mx-auto">
+        <div className="max-w-3xl mx-auto relative z-10">
           {isCalculating ? (
             renderLoadingScreen()
           ) : (
@@ -843,35 +966,37 @@ const MultiStepForm = () => {
                     <span className="text-base">Back</span>
                   </button>
                   
-                  <div>
-                    {/* Only show Continue button on the last step or for non-clickable inputs */}
-                    {(step === steps.length - 1 || 
-                      currentStepData.id === 'currentSalary' || 
-                      currentStepData.id === 'currentSavings' || 
-                      currentStepData.id === 'monthlySavings' || 
-                      currentStepData.id === 'retirementAge' || 
-                      currentStepData.id === 'yearsInGermany' ||
-                      (currentStepData.id === 'age' && formData.age === null) ||
-                      (currentStepData.id === 'riskTolerance' && formData.riskTolerance === null) ||
-                      (currentStepData.id === 'employmentType' && formData.employmentType === null) ||
-                      (currentStepData.id === 'germanCitizenship' && formData.germanCitizenship === null) ||
-                      (currentStepData.id === 'hasAdditionalIncome' && formData.hasAdditionalIncome === null) ||
-                      (currentStepData.id === 'hasPropertyInvestments' && formData.hasPropertyInvestments === null)
-                    ) && (
+                  <div className="relative z-10">
+                    {/* Show Get Results button on the last step if property investment is selected */}
+                    {step === steps.length - 1 && formData.hasPropertyInvestments !== null ? (
                       <button
                         type="button"
-                        onClick={handleNext}
-                        className="flex items-center px-5 py-2 bg-[#0A1E3C] text-white rounded-md shadow-sm transition-all duration-200 hover:bg-[#0A1E3C]/90 hover:scale-102 active:scale-98 text-base"
+                        onClick={handleStartCalculation}
+                        className="flex items-center px-6 py-3 bg-[#0A1E3C] text-white rounded-md shadow-lg transition-all duration-300 
+                          hover:bg-[#0A1E3C]/90 hover:scale-105 active:scale-98 text-lg font-semibold
+                          animate-bounce"
                       >
-                        {step === steps.length - 1 ? 'Calculate Results' : 'Continue'}
-                        <FaArrowRight className="ml-2 h-4 w-4" />
+                        Get Results
+                        <FaRegFilePdf className="ml-2 h-5 w-5" />
                       </button>
+                    ) : (
+                      /* Show Continue button for other steps */
+                      currentStepData && (
+                        <button
+                          type="button"
+                          onClick={handleNext}
+                          className="flex items-center px-5 py-2 bg-[#0A1E3C] text-white rounded-md shadow-sm transition-all duration-200 hover:bg-[#0A1E3C]/90 hover:scale-102 active:scale-98 text-base"
+                        >
+                          Continue
+                          <FaArrowRight className="ml-2 h-4 w-4" />
+                        </button>
+                      )
                     )}
                   </div>
                 </div>
 
                 {/* Progress bar */}
-                <div className="mt-6">
+                <div className="mt-6 relative z-10">
                   <div className="relative w-full h-3 bg-gray-200 rounded-full overflow-hidden">
                     <div 
                       className="bg-gradient-to-r from-[#E5B94B] to-[#D4AF37] h-3 rounded-full transition-all duration-500 ease-in-out"

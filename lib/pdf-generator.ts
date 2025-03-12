@@ -1,5 +1,5 @@
-import jsPDF from 'jspdf';
-import 'jspdf-autotable';
+import { jsPDF } from 'jspdf';
+import { RetirementResults } from '@/utils/retirementCalculator';
 
 // Add this to make TypeScript recognize the autotable plugin
 declare module 'jspdf' {
@@ -36,146 +36,109 @@ export interface PDFFormData {
  * 
  * This uses jsPDF to create a professional PDF document
  */
-export const generateFinancialReport = async (formData: PDFFormData): Promise<Blob> => {
-  try {
-    // Create a new jsPDF instance
-    const doc = new jsPDF();
-    
-    // Add a title
-    doc.setFontSize(22);
-    doc.setTextColor(0, 48, 120); // Dark blue color
-    doc.text('NOVA FINANCIAL ADVISORY REPORT', 105, 20, { align: 'center' });
-    
-    // Add a horizontal line
-    doc.setDrawColor(0, 114, 206); // Blue color
-    doc.setLineWidth(0.5);
-    doc.line(20, 25, 190, 25);
-    
-    // Add creation date
-    doc.setFontSize(10);
-    doc.setTextColor(100, 100, 100); // Gray color
-    doc.text(`Generated on: ${new Date().toLocaleDateString()}`, 190, 35, { align: 'right' });
-    
-    // Personal Information section
-    doc.setFontSize(16);
-    doc.setTextColor(0, 48, 120); // Dark blue color
-    doc.text('PERSONAL INFORMATION', 20, 45);
-    
-    doc.setFontSize(11);
-    doc.setTextColor(0, 0, 0); // Black color
-    let yPos = 55;
-    doc.text(`Name: ${formData.firstName || ''} ${formData.lastName || ''}`, 20, yPos); yPos += 8;
-    doc.text(`Email: ${formData.email || ''}`, 20, yPos); yPos += 8;
-    doc.text(`Residency Status: ${formData.residencyStatus || ''}`, 20, yPos); yPos += 8;
-    doc.text(`Family Status: ${formData.familyStatus || ''}`, 20, yPos); yPos += 8;
-    
-    // Financial Information section
-    yPos += 5;
-    doc.setFontSize(16);
-    doc.setTextColor(0, 48, 120); // Dark blue color
-    doc.text('INCOME SUMMARY', 20, yPos); yPos += 10;
-    
-    doc.setFontSize(11);
-    doc.setTextColor(0, 0, 0); // Black color
-    const totalIncome = (formData.employmentIncome || 0) + 
-                       (formData.businessIncome || 0) + 
-                       (formData.investmentIncome || 0) + 
-                       (formData.otherIncome || 0);
-    
-    doc.text(`Employment Income: €${(formData.employmentIncome || 0).toLocaleString()}`, 20, yPos); yPos += 8;
-    doc.text(`Business Income: €${(formData.businessIncome || 0).toLocaleString()}`, 20, yPos); yPos += 8;
-    doc.text(`Investment Income: €${(formData.investmentIncome || 0).toLocaleString()}`, 20, yPos); yPos += 8;
-    doc.text(`Other Income: €${(formData.otherIncome || 0).toLocaleString()}`, 20, yPos); yPos += 8;
-    doc.text(`Total Income: €${totalIncome.toLocaleString()}`, 20, yPos); yPos += 15;
-    
-    // Assets Summary
-    doc.setFontSize(16);
-    doc.setTextColor(0, 48, 120); // Dark blue color
-    doc.text('ASSETS SUMMARY', 20, yPos); yPos += 10;
-    
-    doc.setFontSize(11);
-    doc.setTextColor(0, 0, 0); // Black color
-    doc.text(`Real Estate: ${formData.realEstate?.length || 0} properties`, 20, yPos); yPos += 8;
-    doc.text(`Investments: ${formData.investments?.length || 0} accounts`, 20, yPos); yPos += 8;
-    doc.text(`Cash: €${(formData.cash || 0).toLocaleString()}`, 20, yPos); yPos += 15;
-    
-    // Tax Situation
-    doc.setFontSize(16);
-    doc.setTextColor(0, 48, 120); // Dark blue color
-    doc.text('TAX SITUATION', 20, yPos); yPos += 10;
-    
-    doc.setFontSize(11);
-    doc.setTextColor(0, 0, 0); // Black color
-    doc.text(`Tax Residency: ${formData.taxResidency || ''}`, 20, yPos); yPos += 8;
-    doc.text(`Tax Obligations: ${formData.taxObligations?.join(', ') || ''}`, 20, yPos); yPos += 15;
-    
-    // Financial Goals
-    doc.setFontSize(16);
-    doc.setTextColor(0, 48, 120); // Dark blue color
-    doc.text('FINANCIAL GOALS', 20, yPos); yPos += 10;
-    
-    doc.setFontSize(11);
-    doc.setTextColor(0, 0, 0); // Black color
-    doc.text(`Retirement Planning: ${formData.retirementPlanning ? 'Yes' : 'No'}`, 20, yPos); yPos += 8;
-    doc.text(`Wealth Accumulation: ${formData.wealthAccumulation ? 'Yes' : 'No'}`, 20, yPos); yPos += 8;
-    doc.text(`Tax Optimization: ${formData.taxOptimization ? 'Yes' : 'No'}`, 20, yPos); yPos += 8;
-    doc.text(`Other Goals: ${formData.otherGoals || 'None specified'}`, 20, yPos); yPos += 15;
-    
-    // Recommendations (static for now)
-    doc.setFontSize(16);
-    doc.setTextColor(0, 48, 120); // Dark blue color
-    doc.text('RECOMMENDATIONS', 20, yPos); yPos += 10;
-    
-    doc.setFontSize(11);
-    doc.setTextColor(0, 0, 0); // Black color
-    const recommendations = [
-      'Consider optimizing your tax structure based on your residency status.',
-      'Review your investment portfolio for potential diversification.',
-      'Establish an emergency fund of 3-6 months of expenses.',
-      'Consult with a tax specialist regarding cross-border obligations.'
-    ];
-    
-    recommendations.forEach((rec, index) => {
-      doc.text(`${index + 1}. ${rec}`, 20, yPos);
-      yPos += 8;
-    });
-    
-    yPos += 7;
-    
-    // Potential Savings
-    doc.setFontSize(16);
-    doc.setTextColor(0, 48, 120); // Dark blue color
-    doc.text('POTENTIAL SAVINGS', 20, yPos); yPos += 10;
-    
-    doc.setFontSize(11);
-    doc.setTextColor(0, 0, 0); // Black color
-    doc.text('Based on our initial analysis, we estimate potential annual savings of:', 20, yPos); yPos += 8;
-    doc.text('€5,000 - €10,000 through proper tax planning and optimization.', 20, yPos); yPos += 20;
-    
-    // Final note
-    doc.setFontSize(10);
-    doc.setTextColor(100, 100, 100); // Gray color
-    doc.text('This report is a preliminary assessment. For a detailed analysis and', 20, yPos); yPos += 5;
-    doc.text('personalized recommendations, please schedule a consultation with one', 20, yPos); yPos += 5;
-    doc.text('of our financial advisors.', 20, yPos); yPos += 15;
-    
-    // Footer with company info
-    doc.setDrawColor(0, 114, 206); // Blue color
-    doc.setLineWidth(0.5);
-    doc.line(20, 270, 190, 270);
-    
-    doc.setFontSize(10);
-    doc.setTextColor(100, 100, 100); // Gray color
-    doc.text('NOVA Financial Advisory', 105, 280, { align: 'center' });
-    doc.text('www.nova-advisory.com | contact@nova-advisory.com | +49 30 123 456 789', 105, 285, { align: 'center' });
-    
-    // Convert the PDF to a Blob
-    const pdfBlob = doc.output('blob');
-    return pdfBlob;
-  } catch (error) {
-    console.error('Error generating financial report:', error);
-    throw new Error('Failed to generate financial report');
-  }
+export const generateFinancialReport = async (results: RetirementResults): Promise<Blob> => {
+  const doc = new jsPDF();
+  let yPos = 20;
+
+  // Title
+  doc.setFontSize(24);
+  doc.setTextColor(10, 30, 60);
+  doc.text('Financial Analysis Report', 20, yPos);
+  yPos += 20;
+
+  // Overview Section
+  doc.setFontSize(16);
+  doc.setTextColor(0, 48, 120);
+  doc.text('OVERVIEW', 20, yPos);
+  yPos += 10;
+
+  doc.setFontSize(12);
+  doc.setTextColor(0, 0, 0);
+  doc.text(`Retirement Readiness Score: ${results.score}/100`, 20, yPos);
+  yPos += 8;
+  doc.text(`Category: ${results.scoreCategory}`, 20, yPos);
+  yPos += 15;
+
+  // Financial Metrics
+  doc.setFontSize(16);
+  doc.setTextColor(0, 48, 120);
+  doc.text('FINANCIAL METRICS', 20, yPos);
+  yPos += 10;
+
+  doc.setFontSize(12);
+  doc.setTextColor(0, 0, 0);
+  doc.text(`Monthly Retirement Income: €${Math.round(results.retirementIncome / 12).toLocaleString()}`, 20, yPos);
+  yPos += 8;
+  doc.text(`Projected Total Savings: €${results.projectedSavings.toLocaleString()}`, 20, yPos);
+  yPos += 8;
+  doc.text(`Savings Gap: €${results.savingsGap.toLocaleString()}`, 20, yPos);
+  yPos += 15;
+
+  // Radar Scores
+  doc.setFontSize(16);
+  doc.setTextColor(0, 48, 120);
+  doc.text('DETAILED SCORES', 20, yPos);
+  yPos += 10;
+
+  doc.setFontSize(12);
+  doc.setTextColor(0, 0, 0);
+  Object.entries(results.radarScores).forEach(([key, value]) => {
+    const label = key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
+    doc.text(`${label}: ${value}/100`, 20, yPos);
+    yPos += 8;
+  });
+  yPos += 15;
+
+  // Recommendations
+  doc.setFontSize(16);
+  doc.setTextColor(0, 48, 120);
+  doc.text('RECOMMENDATIONS', 20, yPos);
+  yPos += 10;
+
+  doc.setFontSize(12);
+  doc.setTextColor(0, 0, 0);
+  results.recommendations.forEach((recommendation, index) => {
+    if (yPos > 270) { // Check if we need a new page
+      doc.addPage();
+      yPos = 20;
+    }
+    doc.text(`${index + 1}. ${recommendation}`, 20, yPos);
+    yPos += 8;
+  });
+
+  // Investment Strategy
+  doc.addPage();
+  yPos = 20;
+  doc.setFontSize(16);
+  doc.setTextColor(0, 48, 120);
+  doc.text('INVESTMENT STRATEGY', 20, yPos);
+  yPos += 10;
+
+  doc.setFontSize(12);
+  doc.setTextColor(0, 0, 0);
+  // Add investment strategy content based on risk profile
+  const riskStrategies = {
+    poor: 'Conservative approach focused on capital preservation',
+    fair: 'Balanced approach with moderate growth potential',
+    good: 'Growth-oriented strategy with managed risk',
+    excellent: 'Aggressive growth strategy with higher risk tolerance'
+  };
+  doc.text(`Recommended Strategy: ${riskStrategies[results.scoreCategory]}`, 20, yPos);
+  yPos += 15;
+
+  // Pension Planning
+  doc.setFontSize(16);
+  doc.setTextColor(0, 48, 120);
+  doc.text('PENSION PLANNING', 20, yPos);
+  yPos += 10;
+
+  doc.setFontSize(12);
+  doc.setTextColor(0, 0, 0);
+  doc.text(`German Retirement Benefit: €${results.germanRetirementBenefit.toLocaleString()}`, 20, yPos);
+  yPos += 8;
+  doc.text(`Required Additional Savings: €${results.totalRequiredSavings.toLocaleString()}`, 20, yPos);
+
+  return doc.output('blob');
 };
 
 /**
