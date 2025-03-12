@@ -49,12 +49,16 @@ export async function POST(request: NextRequest) {
         results: results,
         score: rrsScore,
         rrsScore: rrsScore, // For backward compatibility
+        timestamp: new Date().toISOString(),
       }
     });
   } catch (error) {
     console.error('Error calculating retirement readiness:', error);
     return NextResponse.json(
-      { error: 'Failed to calculate retirement readiness' },
+      { 
+        success: false, 
+        error: 'Failed to calculate retirement readiness' 
+      },
       { status: 500 }
     );
   }

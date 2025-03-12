@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, ChangeEvent } from 'react';
+import { useState, useEffect, ChangeEvent, useMemo } from 'react';
 import { 
   FaBriefcase, 
   FaUserTie, 
@@ -35,6 +35,7 @@ interface Step {
   title: string;
   question: string;
   shortDesc: string;
+  defaultValues: Partial<FormData>;
 }
 
 const steps: Step[] = [
@@ -42,67 +43,78 @@ const steps: Step[] = [
     id: 'age',
     title: 'Age',
     question: 'What is your current age?',
-    shortDesc: 'Your age helps us calculate your retirement timeline'
+    shortDesc: 'Your age helps us calculate your retirement timeline',
+    defaultValues: { age: null }
   },
   {
     id: 'currentSalary',
     title: 'Salary',
     question: 'What is your current annual salary?',
-    shortDesc: 'Your salary is the foundation of your retirement planning'
+    shortDesc: 'Your salary is the foundation of your retirement planning',
+    defaultValues: { currentSalary: 60000 }
   },
   {
     id: 'currentSavings',
     title: 'Savings',
     question: 'How much have you already saved for retirement?',
-    shortDesc: 'Your existing savings give you a head start'
+    shortDesc: 'Your existing savings give you a head start',
+    defaultValues: { currentSavings: 20000 }
   },
   {
     id: 'monthlySavings',
     title: 'Monthly Savings',
     question: 'How much can you save monthly for retirement?',
-    shortDesc: 'Regular contributions are key to building your nest egg'
+    shortDesc: 'Regular contributions are key to building your nest egg',
+    defaultValues: { monthlySavings: 500 }
   },
   {
     id: 'retirementAge',
     title: 'Retirement Age',
     question: 'At what age do you plan to retire?',
-    shortDesc: 'This determines how long you have to save'
+    shortDesc: 'This determines how long you have to save',
+    defaultValues: { retirementAge: 67 }
   },
   {
     id: 'riskTolerance',
     title: 'Risk Tolerance',
     question: 'What is your investment risk tolerance?',
-    shortDesc: 'Your comfort with market fluctuations shapes your strategy'
+    shortDesc: 'Your comfort with market fluctuations shapes your strategy',
+    defaultValues: { riskTolerance: null }
   },
   {
     id: 'employmentType',
     title: 'Employment',
     question: 'What is your employment type?',
-    shortDesc: 'Different employment types have unique retirement advantages'
+    shortDesc: 'Different employment types have unique retirement advantages',
+    defaultValues: { employmentType: null }
   },
   {
     id: 'yearsInGermany',
     title: 'Years in Germany',
     question: 'How many years have you lived in Germany?',
-    shortDesc: 'This affects your eligibility for local benefits'
+    shortDesc: 'This affects your eligibility for local benefits',
+    defaultValues: { yearsInGermany: 5 }
   },
   {
     id: 'germanCitizenship',
     title: 'Citizenship',
     question: 'Do you have German citizenship?',
-    shortDesc: 'Citizenship status impacts available retirement options'
+    shortDesc: 'Citizenship status impacts available retirement options',
+    defaultValues: { germanCitizenship: null }
   },
   {
     id: 'hasAdditionalIncome',
     title: 'Additional Income',
     question: 'Do you have additional sources of income?',
-    shortDesc: 'Multiple income streams can enhance your retirement security'
+    shortDesc: 'Multiple income streams can enhance your retirement security',
+    defaultValues: { hasAdditionalIncome: null }
   },
   {
     id: 'hasPropertyInvestments',
     title: 'Property',
     question: 'Do you have property investments?',
-    shortDesc: 'Real estate can be a valuable part of your retirement portfolio'
+    shortDesc: 'Real estate can be a valuable part of your retirement portfolio',
+    defaultValues: { hasPropertyInvestments: null }
   }
 ];
 
@@ -736,12 +748,14 @@ const MultiStepForm = () => {
   };
 
   // Progress bar - preserve progress across the session
+  const totalSteps = useMemo(() => steps.length - 1, []); // Memoize steps.length
+
   useEffect(() => {
     // Save current progress to localStorage
     if (typeof window !== 'undefined') {
-      localStorage.setItem('formProgress', JSON.stringify(step / (steps.length - 1)));
+      localStorage.setItem('formProgress', JSON.stringify(step / totalSteps));
     }
-  }, [step, steps.length]);
+  }, [step, totalSteps]);
 
   // Restore progress when component mounts
   useEffect(() => {
@@ -753,14 +767,24 @@ const MultiStepForm = () => {
         // Only update if we're at step 0 (first load)
         if (step === 0 && progressValue > 0) {
           // Optional: could uncomment this to auto-restore progress
-          // setStep(Math.round(progressValue * (steps.length - 1)));
+          // setStep(Math.round(progressValue * totalSteps));
         }
       }
     }
-  }, []);
+  }, []); // Empty dependency array since this should only run once
 
   // Get current step data
   const currentStepData = steps[step];
+
+  // Set form data when step changes
+  useEffect(() => {
+    if (currentStepData?.defaultValues) {
+      setFormData(prev => ({
+        ...prev,
+        ...currentStepData.defaultValues
+      }));
+    }
+  }, [currentStepData]);
 
   // If we have results, show the results page
   if (results) {

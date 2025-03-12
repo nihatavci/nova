@@ -359,7 +359,7 @@ export default function ResultsPage({ score, results, onReset }: ResultsPageProp
                   <div>
                     <h3 className="text-lg font-semibold text-gray-900 mb-2">Review Suggestions</h3>
                     <p className="text-gray-600 mb-4">
-                      We've provided personalized suggestions to improve your retirement readiness.
+                      We&apos;ve provided personalized suggestions to improve your retirement readiness.
                     </p>
                     <button 
                       onClick={() => setActiveTab('suggestions')}
@@ -448,7 +448,7 @@ export default function ResultsPage({ score, results, onReset }: ResultsPageProp
         <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
           <h2 className="text-xl font-bold text-gray-900 mb-4">Investment Ideas</h2>
           <p className="text-gray-600 mb-6">
-            Based on your retirement goals and risk profile, we've tailored these specific investment strategies 
+            Based on your retirement goals and risk profile, we&apos;ve tailored these specific investment strategies 
             to help close your savings gap and optimize your retirement readiness.
           </p>
           <div className="space-y-6">
