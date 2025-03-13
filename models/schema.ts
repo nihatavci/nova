@@ -66,4 +66,25 @@ export const dashboardSettings = pgTable('dashboard_settings', {
   notificationsEnabled: boolean('notifications_enabled').default(true),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
+// Shared Results table for public sharing
+export const sharedResults = pgTable('shared_results', {
+  id: serial('id').primaryKey(),
+  shareId: text('share_id').notNull().unique(), // Unique identifier for sharing URL
+  resultData: json('result_data').notNull(), // Store the entire result data as JSON
+  score: json('score').$type<{
+    overall: number;
+    category: string;
+    breakdown: Record<string, number>;
+    recommendations: Array<{
+      description: string;
+      impact: string;
+    }>;
+  }>(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  expiresAt: timestamp('expires_at'), // Optional expiration date
+  viewCount: integer('view_count').default(0), // Track number of views
+  isProtected: boolean('is_protected').default(false), // Option to password-protect
+  accessPassword: text('access_password'), // Optional password for protected results
 }); 

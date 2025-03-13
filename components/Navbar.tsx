@@ -19,8 +19,6 @@ export default function Navbar() {
   
   const navLinks = [
     { href: '/', label: 'Home' },
-    { href: '/dashboard', label: 'Dashboard' },
-    { href: '/calculator', label: 'Calculator' },
     { href: '/about', label: 'About' },
     { href: '/contact', label: 'Contact' },
     { href: '/api-docs', label: 'API Docs' }
@@ -53,7 +51,7 @@ export default function Navbar() {
                 {link.label}
               </Link>
             ))}
-            <button className="bg-gradient-to-r from-[#E5B94B] to-[#D4AF37] text-[#0A1E3C] px-4 py-2 rounded-md font-medium shadow-md hover:from-[#D4AF37] hover:to-[#C4A137] transition-all duration-300 flex items-center">
+            <button className="bg-gradient-to-r from-[#E5B94B] to-[#FBD96D] text-[#0A1E3C] px-4 py-2 rounded-md font-medium shadow-md hover:from-[#D4AF37] hover:to-[#C4A137] transition-all duration-300 flex items-center">
               <FaChartLine className="mr-2" />
               Get Started
             </button>

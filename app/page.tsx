@@ -1,7 +1,7 @@
 'use client';
 
-import MainPage from '@/components/RetirementCalculator/MainPage';
+import OnboardingContainer from '@/components/Onboarding/OnboardingContainer';
 
 export default function Home() {
-  return <MainPage />;
+  return <OnboardingContainer />;
 } 

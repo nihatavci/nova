@@ -12,7 +12,7 @@ import {
 } from 'chart.js';
 import { useState, useEffect } from 'react';
 import { LightbulbIcon, TrendingUpIcon, ArrowRightIcon, InfoIcon } from 'lucide-react';
-import { FaAward, FaRegFilePdf } from 'react-icons/fa';
+import { FaAward, FaRegFilePdf, FaDownload, FaCalendarAlt, FaUserTie, FaHandshake } from 'react-icons/fa';
 
 // Register Chart.js components
 ChartJS.register(
@@ -28,6 +28,7 @@ interface ResultsPageProps {
   score?: RRSScore;
   results?: RetirementResults;
   onReset: () => void;
+  isShared?: boolean;
 }
 
 // Define tab types
@@ -48,9 +49,44 @@ function CustomTooltip({ content, children }: { content: string; children: React
   );
 }
 
-export default function ResultsPage({ score, results, onReset }: ResultsPageProps) {
+// Free coaching offer component
+const FreeCoachingOffer = () => {
+  return (
+    <div className="bg-gradient-to-r from-[#F9F5E3] to-[#FFFBEB] border border-[#FBD96D] rounded-lg p-6 mb-8 shadow-sm">
+      <div className="flex flex-col md:flex-row items-center">
+        <div className="flex-shrink-0 mr-6 mb-4 md:mb-0">
+          <div className="bg-[#FBD96D] rounded-full p-4 text-[#0A1E3C]">
+            <FaUserTie size={24} />
+          </div>
+        </div>
+        <div className="flex-grow">
+          <h3 className="text-xl font-bold text-[#0A1E3C] mb-2">Ready to maximize your retirement potential?</h3>
+          <p className="text-gray-700 mb-4">Schedule a <span className="font-semibold">free 30-minute coaching session</span> with one of our expert financial advisors to discuss your results and create a personalized action plan.</p>
+          <div className="flex flex-wrap gap-3">
+            <a href="#schedule-session" className="inline-flex items-center px-4 py-2 bg-[#FBD96D] text-[#0A1E3C] rounded-md font-medium hover:bg-[#E5B94B] transition-colors">
+              <FaCalendarAlt className="mr-2" />
+              Schedule Free Session
+            </a>
+            <button className="inline-flex items-center px-4 py-2 border border-gray-300 text-gray-700 rounded-md font-medium hover:bg-gray-50 transition-colors">
+              Learn More
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default function ResultsPage({ score, results, onReset, isShared = false }: ResultsPageProps) {
   const [showResults, setShowResults] = useState(false);
   const [activeTab, setActiveTab] = useState<TabType>('overview');
+  const [shareUrl, setShareUrl] = useState<string | null>(null);
+  const [isSharing, setIsSharing] = useState(false);
+  const [shareError, setShareError] = useState<string | null>(null);
+  const [showShareModal, setShowShareModal] = useState(false);
+  const [isPasswordProtected, setIsPasswordProtected] = useState(false);
+  const [sharePassword, setSharePassword] = useState('');
+  const [isPdfGenerating, setIsPdfGenerating] = useState(false);
   
   useEffect(() => {
     // When results are ready, we can enable the view results button
@@ -253,7 +289,7 @@ export default function ResultsPage({ score, results, onReset }: ResultsPageProp
       },
       tooltip: {
         enabled: true,
-        position: 'nearest',
+        position: 'nearest' as const,
         backgroundColor: 'rgba(0, 0, 0, 0.8)',
         titleColor: '#fff',
         bodyColor: '#fff',
@@ -285,6 +321,333 @@ export default function ResultsPage({ score, results, onReset }: ResultsPageProp
   // Calculate monthly retirement income
   const monthlyRetirementIncome = results ? Math.round(results.retirementIncome / 12) : 0;
   
+  // Function to handle sharing the results
+  const handleShare = async () => {
+    if (!results && !score) {
+      return;
+    }
+    
+    // If we're showing the modal for the first time, just show the options
+    if (!showShareModal) {
+      setShowShareModal(true);
+      return;
+    }
+    
+    try {
+      setIsSharing(true);
+      setShareError(null);
+      
+      // Create the share data object
+      const shareData = {
+        resultData: results,
+        score,
+        isProtected: isPasswordProtected,
+        accessPassword: isPasswordProtected ? sharePassword : null,
+      };
+      
+      const response = await fetch('/api/share', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(shareData),
+      });
+      
+      const data = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to create shared link');
+      }
+      
+      // Use the shareUrl directly from the API response
+      setShareUrl(data.shareUrl);
+    } catch (err: any) {
+      console.error('Error sharing results:', err);
+      setShareError(err.message || 'Failed to create shared link');
+    } finally {
+      setIsSharing(false);
+    }
+  };
+
+  // Function to copy the share URL to clipboard
+  const copyToClipboard = () => {
+    if (shareUrl) {
+      navigator.clipboard.writeText(shareUrl)
+        .then(() => {
+          // Show a temporary success message
+          const copyButton = document.getElementById('copy-button');
+          if (copyButton) {
+            copyButton.textContent = 'Copied!';
+            setTimeout(() => {
+              copyButton.textContent = 'Copy Link';
+            }, 2000);
+          }
+        })
+        .catch(err => {
+          console.error('Failed to copy:', err);
+        });
+    }
+  };
+
+  // Share Modal Component
+  const ShareModal = () => {
+    if (!showShareModal) return null;
+    
+    // If we're still in the process of setting up sharing
+    if (!shareUrl && !shareError) {
+      return (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg p-6 max-w-md w-full shadow-xl">
+            <h3 className="text-xl font-bold text-gray-900 mb-4">Share Your Results</h3>
+            
+            <p className="text-gray-600 mb-4">
+              Choose how you want to share your retirement analysis:
+            </p>
+            
+            <div className="space-y-4 mb-6">
+              <div className="flex items-center">
+                <input
+                  type="checkbox"
+                  id="password-protect"
+                  checked={isPasswordProtected}
+                  onChange={(e) => setIsPasswordProtected(e.target.checked)}
+                  className="h-4 w-4 text-amber-500 focus:ring-amber-500 border-gray-300 rounded"
+                />
+                <label htmlFor="password-protect" className="ml-2 block text-gray-700">
+                  Password protect this link
+                </label>
+              </div>
+              
+              {isPasswordProtected && (
+                <div className="mt-2">
+                  <label htmlFor="share-password" className="block text-sm font-medium text-gray-700 mb-1">
+                    Password
+                  </label>
+                  <input
+                    type="password"
+                    id="share-password"
+                    value={sharePassword}
+                    onChange={(e) => setSharePassword(e.target.value)}
+                    placeholder="Enter a password"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent"
+                  />
+                  <p className="mt-1 text-sm text-gray-500">
+                    Anyone who receives this link will need this password to view your results.
+                  </p>
+                </div>
+              )}
+            </div>
+            
+            <div className="flex justify-end space-x-3">
+              <button
+                onClick={() => setShowShareModal(false)}
+                className="px-4 py-2 bg-gray-200 text-gray-800 rounded-md font-medium hover:bg-gray-300 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleShare}
+                disabled={isPasswordProtected && !sharePassword}
+                className="px-4 py-2 bg-amber-500 text-white rounded-md font-medium hover:bg-amber-600 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed"
+              >
+                {isSharing ? 'Creating Link...' : 'Create Share Link'}
+              </button>
+            </div>
+          </div>
+        </div>
+      );
+    }
+    
+    // If we have a share URL or an error
+    return (
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div className="bg-white rounded-lg p-6 max-w-md w-full shadow-xl">
+          <h3 className="text-xl font-bold text-gray-900 mb-4">Share Your Results</h3>
+          
+          {shareError ? (
+            <div className="bg-red-50 border border-red-200 rounded-lg p-3 mb-4">
+              <p className="text-red-600 text-sm">{shareError}</p>
+            </div>
+          ) : (
+            <>
+              <p className="text-gray-600 mb-4">
+                Your results are ready to share! Use the link below to share your retirement analysis with others.
+              </p>
+              
+              <div className="flex items-center mb-4">
+                <input
+                  type="text"
+                  value={shareUrl || ''}
+                  readOnly
+                  className="flex-1 px-3 py-2 border border-gray-300 rounded-l-md focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent bg-gray-50"
+                />
+                <button
+                  id="copy-button"
+                  onClick={copyToClipboard}
+                  className="px-4 py-2 bg-amber-500 text-white rounded-r-md font-medium hover:bg-amber-600 transition-colors"
+                >
+                  Copy Link
+                </button>
+              </div>
+              
+              {isPasswordProtected && (
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
+                  <p className="text-blue-700 text-sm">
+                    <span className="font-medium">Note:</span> This link is password protected. Anyone who receives this link will need the password to view your results.
+                  </p>
+                </div>
+              )}
+              
+              <p className="text-sm text-gray-500 mb-6">
+                This link will expire in 30 days. Anyone with this link can view your retirement analysis.
+              </p>
+            </>
+          )}
+          
+          <div className="flex justify-end">
+            <button
+              onClick={() => {
+                setShowShareModal(false);
+                setShareUrl(null);
+                setShareError(null);
+              }}
+              className="px-4 py-2 bg-gray-200 text-gray-800 rounded-md font-medium hover:bg-gray-300 transition-colors"
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  // Improved PDF generation function
+  const generatePDF = async () => {
+    if (isPdfGenerating) return;
+    
+    try {
+      setIsPdfGenerating(true);
+      
+      // Import required libraries
+      const { jsPDF } = await import('jspdf');
+      const { default: autoTable } = await import('jspdf-autotable');
+      
+      // Create a new PDF document
+      const pdf = new jsPDF();
+      
+      // Add title
+      pdf.setFontSize(22);
+      pdf.setTextColor(33, 33, 33);
+      pdf.text('Retirement Analysis Report', 105, 20, { align: 'center' });
+      
+      // Add date
+      pdf.setFontSize(10);
+      pdf.setTextColor(100, 100, 100);
+      pdf.text(`Generated on: ${new Date().toLocaleDateString()}`, 105, 30, { align: 'center' });
+      
+      // Add score section
+      pdf.setFontSize(16);
+      pdf.setTextColor(33, 33, 33);
+      pdf.text('Retirement Readiness Score', 20, 45);
+      
+      pdf.setFontSize(14);
+      pdf.setTextColor(50, 50, 50);
+      pdf.text(`Score: ${scoreData.overall}/100 - ${scoreData.category}`, 20, 55);
+      
+      // Add financial projections
+      pdf.setFontSize(16);
+      pdf.setTextColor(33, 33, 33);
+      pdf.text('Financial Projections', 20, 70);
+      
+      if (results) {
+        autoTable(pdf, {
+          startY: 75,
+          head: [['Metric', 'Value']],
+          body: [
+            ['Projected Retirement Savings', `€${results.projectedSavings.toLocaleString()}`],
+            ['Monthly Retirement Income', `€${monthlyRetirementIncome.toLocaleString()}`],
+            ['Savings Gap', `€${results.savingsGap.toLocaleString()}`],
+          ],
+          theme: 'grid',
+          headStyles: { fillColor: [245, 158, 11], textColor: [255, 255, 255] },
+          alternateRowStyles: { fillColor: [245, 245, 245] },
+        });
+      }
+      
+      // Add breakdown section
+      if (breakdownEntries.length > 0) {
+        pdf.addPage();
+        pdf.setFontSize(16);
+        pdf.setTextColor(33, 33, 33);
+        pdf.text('Retirement Readiness Breakdown', 20, 20);
+        
+        autoTable(pdf, {
+          startY: 25,
+          head: [['Category', 'Score']],
+          body: breakdownEntries.map(([key, value]) => [
+            key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase()),
+            `${value}/100`,
+          ]),
+          theme: 'grid',
+          headStyles: { fillColor: [245, 158, 11], textColor: [255, 255, 255] },
+          alternateRowStyles: { fillColor: [245, 245, 245] },
+        });
+      }
+      
+      // Add recommendations section
+      if (recommendations.length > 0) {
+        pdf.addPage();
+        pdf.setFontSize(16);
+        pdf.setTextColor(33, 33, 33);
+        pdf.text('Personalized Recommendations', 20, 20);
+        
+        let yPos = 30;
+        recommendations.forEach((recommendation, index) => {
+          pdf.setFontSize(12);
+          pdf.setTextColor(33, 33, 33);
+          pdf.text(`${index + 1}. ${recommendation.description}`, 20, yPos);
+          pdf.setFontSize(10);
+          pdf.setTextColor(100, 100, 100);
+          pdf.text(`Priority: ${recommendation.impact}`, 25, yPos + 5);
+          yPos += 15;
+          
+          // Add a new page if we're running out of space
+          if (yPos > 270) {
+            pdf.addPage();
+            yPos = 20;
+          }
+        });
+      }
+      
+      // Add footer with disclaimer
+      const pageCount = pdf.getNumberOfPages();
+      for (let i = 1; i <= pageCount; i++) {
+        pdf.setPage(i);
+        pdf.setFontSize(8);
+        pdf.setTextColor(150, 150, 150);
+        pdf.text(
+          'This report is for informational purposes only and does not constitute financial advice.',
+          105,
+          pdf.internal.pageSize.height - 10,
+          { align: 'center' }
+        );
+        pdf.text(
+          `Page ${i} of ${pageCount}`,
+          pdf.internal.pageSize.width - 20,
+          pdf.internal.pageSize.height - 10
+        );
+      }
+      
+      // Save the PDF
+      pdf.save('Retirement_Analysis_Report.pdf');
+    } catch (error) {
+      console.error('Error generating PDF:', error);
+      alert('There was an error generating your PDF. Please try again.');
+    } finally {
+      setIsPdfGenerating(false);
+    }
+  };
+
   // ===== DRAFT-2 UI Implementation =====
   // Tab-based layout with integrated score and recommendations
   return (
@@ -360,6 +723,44 @@ export default function ResultsPage({ score, results, onReset }: ResultsPageProp
             </div>
           </div>
 
+          {/* Quick Financial Analysis - Only in Overview tab */}
+          {results && (
+            <div className="bg-gradient-to-br from-yellow-50 to-amber-100 rounded-xl p-6 shadow-sm border border-amber-200">
+              <h3 className="text-xl font-semibold text-gray-900 mb-4">Quick Financial Analysis</h3>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="bg-white bg-opacity-60 p-4 rounded-lg border border-amber-200">
+                  <span className="text-gray-700 text-lg block mb-1">
+                    <CustomTooltip content="Estimated total savings at retirement age">
+                      Projected Retirement Savings
+                      <InfoIcon className="inline-block w-4 h-4 ml-1 text-gray-500" />
+                    </CustomTooltip>
+                  </span>
+                  <span className="text-2xl font-semibold text-gray-900">€{results.projectedSavings.toLocaleString()}</span>
+                </div>
+                <div className="bg-white bg-opacity-60 p-4 rounded-lg border border-amber-200">
+                  <span className="text-gray-700 text-lg block mb-1">
+                    <CustomTooltip content="Expected monthly income during retirement">
+                      Monthly Retirement Income
+                      <InfoIcon className="inline-block w-4 h-4 ml-1 text-gray-500" />
+                    </CustomTooltip>
+                  </span>
+                  <span className="text-2xl font-semibold text-gray-900">€{monthlyRetirementIncome.toLocaleString()}</span>
+                </div>
+                <div className="bg-white bg-opacity-60 p-4 rounded-lg border border-amber-200">
+                  <span className="text-gray-700 text-lg block mb-1">
+                    <CustomTooltip content="Difference between desired and projected income">
+                      Savings Gap
+                      <InfoIcon className="inline-block w-4 h-4 ml-1 text-gray-500" />
+                    </CustomTooltip>
+                  </span>
+                  <span className={`text-2xl font-semibold ${results.savingsGap > 0 ? 'text-red-600' : 'text-green-600'}`}>
+                    €{results.savingsGap.toLocaleString()}
+                  </span>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Summary Section */}
           <div className="mt-4">
             <h2 className="text-2xl font-bold text-gray-900 mb-3">Summary</h2>
@@ -370,9 +771,8 @@ export default function ResultsPage({ score, results, onReset }: ResultsPageProp
             </p>
           </div>
 
-          {/* Radar Chart and Key Metrics */}
+          {/* Radar Chart */}
           <div className="grid grid-cols-1 gap-4">
-            {/* Radar Chart */}
             {breakdownEntries.length > 0 && (
               <div className="bg-gradient-to-br from-yellow-50 to-amber-100 rounded-xl p-6 shadow-sm border border-amber-200">
                 <h3 className="text-xl font-semibold text-gray-900 mb-4">
@@ -383,46 +783,6 @@ export default function ResultsPage({ score, results, onReset }: ResultsPageProp
                     data={radarData}
                     options={radarOptions}
                   />
-                </div>
-              </div>
-            )}
-
-            {/* Key Financial Metrics */}
-            {results && (
-              <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
-                <h3 className="text-xl font-semibold text-gray-900 mb-4">
-                  Financial Projections
-                </h3>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div className="bg-gradient-to-br from-amber-50 to-yellow-100 p-4 rounded-lg border border-amber-200">
-                    <span className="text-gray-700 text-lg block mb-1">
-                      <CustomTooltip content="Estimated total savings at retirement age">
-                        Projected Retirement Savings
-                        <InfoIcon className="inline-block w-4 h-4 ml-1 text-gray-500" />
-                      </CustomTooltip>
-                    </span>
-                    <span className="text-2xl font-semibold text-gray-900">€{results.projectedSavings.toLocaleString()}</span>
-                  </div>
-                  <div className="bg-gradient-to-br from-amber-50 to-yellow-100 p-4 rounded-lg border border-amber-200">
-                    <span className="text-gray-700 text-lg block mb-1">
-                      <CustomTooltip content="Expected monthly income during retirement">
-                        Monthly Retirement Income
-                        <InfoIcon className="inline-block w-4 h-4 ml-1 text-gray-500" />
-                      </CustomTooltip>
-                    </span>
-                    <span className="text-2xl font-semibold text-gray-900">€{monthlyRetirementIncome.toLocaleString()}</span>
-                  </div>
-                  <div className="bg-gradient-to-br from-amber-50 to-yellow-100 p-4 rounded-lg border border-amber-200">
-                    <span className="text-gray-700 text-lg block mb-1">
-                      <CustomTooltip content="Difference between desired and projected income">
-                        Savings Gap
-                        <InfoIcon className="inline-block w-4 h-4 ml-1 text-gray-500" />
-                      </CustomTooltip>
-                    </span>
-                    <span className={`text-2xl font-semibold ${results.savingsGap > 0 ? 'text-red-600' : 'text-green-600'}`}>
-                      €{results.savingsGap.toLocaleString()}
-                    </span>
-                  </div>
                 </div>
               </div>
             )}
@@ -489,38 +849,56 @@ export default function ResultsPage({ score, results, onReset }: ResultsPageProp
         </div>
       )}
 
-      {/* Suggestions Tab Content */}
+      {/* Suggestions Tab Content - Enhanced with gradients */}
       {activeTab === 'suggestions' && (
         <div className="space-y-6">
           <h2 className="text-xl font-bold text-gray-900 mb-4">Personalized Recommendations</h2>
-      <div className="space-y-4">
-            {recommendations.map((recommendation, index) => (
-          <div
-            key={index}
-            className="bg-white rounded-xl p-6 shadow-sm border border-gray-100"
-          >
-                <div className="flex items-start">
-                  <div className="flex-shrink-0">
-                    <div className={`w-8 h-8 rounded-full flex items-center justify-center 
-                      ${recommendation.impact === 'High' ? 'bg-red-100 text-red-600' : 
-                        recommendation.impact === 'Medium' ? 'bg-orange-100 text-orange-600' : 
-                        'bg-blue-100 text-blue-600'}`}>
-                      {index + 1}
+          <div className="space-y-4">
+            {recommendations.map((recommendation, index) => {
+              // Determine gradient colors based on impact
+              const gradientColors = recommendation.impact === 'High' 
+                ? 'from-red-50 to-red-100 border-red-200' 
+                : recommendation.impact === 'Medium'
+                ? 'from-orange-50 to-orange-100 border-orange-200'
+                : 'from-blue-50 to-blue-100 border-blue-200';
+              
+              const textColor = recommendation.impact === 'High' 
+                ? 'text-red-800' 
+                : recommendation.impact === 'Medium'
+                ? 'text-orange-800'
+                : 'text-blue-800';
+              
+              const badgeColor = recommendation.impact === 'High' 
+                ? 'bg-red-100 text-red-800' 
+                : recommendation.impact === 'Medium'
+                ? 'bg-orange-100 text-orange-800'
+                : 'bg-blue-100 text-blue-800';
+              
+              return (
+                <div
+                  key={index}
+                  className={`bg-gradient-to-br ${gradientColors} rounded-xl p-6 shadow-sm border`}
+                >
+                  <div className="flex items-start">
+                    <div className="flex-shrink-0">
+                      <div className={`w-8 h-8 rounded-full flex items-center justify-center 
+                        ${recommendation.impact === 'High' ? 'bg-red-200 text-red-600' : 
+                          recommendation.impact === 'Medium' ? 'bg-orange-200 text-orange-600' : 
+                          'bg-blue-200 text-blue-600'}`}>
+                        {index + 1}
+                      </div>
                     </div>
-                  </div>
-                  <div className="flex-1 ml-4">
-                    {/* Single badge for priority/impact */}
-                    <div className="mb-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium 
-                      ${recommendation.impact === 'High' ? 'bg-red-100 text-red-800' : 
-                        recommendation.impact === 'Medium' ? 'bg-orange-100 text-orange-800' : 
-                        'bg-blue-100 text-blue-800'}">
-                      {recommendation.impact} Priority
+                    <div className="flex-1 ml-4">
+                      {/* Badge for priority/impact */}
+                      <div className={`mb-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${badgeColor}`}>
+                        {recommendation.impact} Priority
+                      </div>
+                      <p className={`font-medium ${textColor}`}>{recommendation.description}</p>
                     </div>
-                    <p className="text-gray-700 font-medium">{recommendation.description}</p>
                   </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       )}
@@ -972,6 +1350,9 @@ export default function ResultsPage({ score, results, onReset }: ResultsPageProp
         </div>
       )}
 
+      {/* Add coaching offer banner */}
+      <FreeCoachingOffer />
+
       {/* Action Buttons */}
       <div className="flex flex-col items-center gap-4 pt-6 min-h-[48px]">
         <div className="flex w-full max-w-2xl justify-between gap-4">
@@ -984,106 +1365,43 @@ export default function ResultsPage({ score, results, onReset }: ResultsPageProp
             </svg>
             <span>Recalculate</span>
           </button>
+          
+          {!isShared && (
+            <button
+              onClick={() => {
+                setShowShareModal(true);
+                setShareUrl(null);
+                setShareError(null);
+              }}
+              disabled={isSharing}
+              className="flex items-center justify-center gap-2 px-6 py-4 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 transition-colors w-1/4 text-lg relative group"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
+              </svg>
+              <span>{isSharing ? 'Sharing...' : 'Share'}</span>
+            </button>
+          )}
+          
           <button
-            onClick={() => {
-              // Save current tab
-              const currentTab = activeTab;
-              
-              // Create a PDF with all tabs
-              const generateFullPDF = async () => {
-                // Create a container to hold all content
-                const allContent = document.createElement('div');
-                allContent.style.width = '100%';
-                allContent.style.padding = '20px';
-                
-                // Temporarily hide the container
-                allContent.style.position = 'absolute';
-                allContent.style.left = '-9999px';
-                document.body.appendChild(allContent);
-                
-                // Array of all tabs
-                const tabs: TabType[] = ['overview', 'suggestions', 'investment', 'pension', 'tax'];
-                
-                // For each tab, switch to it, clone the content, and add to our container
-                for (const tab of tabs) {
-                  setActiveTab(tab);
-                  
-                  // Wait for render
-                  await new Promise(resolve => setTimeout(resolve, 100));
-                  
-                  // Clone the main content
-                  const tabContent = document.querySelector('.space-y-6.max-w-4xl.mx-auto');
-                  if (tabContent) {
-                    // Create a tab title
-                    const tabTitle = document.createElement('h2');
-                    tabTitle.textContent = tab.charAt(0).toUpperCase() + tab.slice(1);
-                    tabTitle.style.fontSize = '24px';
-                    tabTitle.style.fontWeight = 'bold';
-                    tabTitle.style.marginTop = '30px';
-                    tabTitle.style.marginBottom = '15px';
-                    tabTitle.style.pageBreakBefore = 'always';
-                    
-                    // Add to our container
-                    if (tab !== 'overview') { // Don't add page break for first tab
-                      allContent.appendChild(tabTitle);
-                    }
-                    allContent.appendChild(tabContent.cloneNode(true));
-                  }
-                }
-                
-                // Use html2canvas and jsPDF to create PDF
-                try {
-                  const { jsPDF } = await import('jspdf');
-                  const html2canvas = (await import('html2canvas')).default;
-                  
-                  const canvas = await html2canvas(allContent, {
-                    scale: 1,
-                    useCORS: true,
-                    logging: false
-                  });
-                  
-                  const imgData = canvas.toDataURL('image/png');
-                  const pdf = new jsPDF('p', 'mm', 'a4');
-                  const pdfWidth = pdf.internal.pageSize.getWidth();
-                  const pdfHeight = pdf.internal.pageSize.getHeight();
-                  const imgWidth = canvas.width;
-                  const imgHeight = canvas.height;
-                  const ratio = Math.min(pdfWidth / imgWidth, pdfHeight / imgHeight);
-                  const imgX = (pdfWidth - imgWidth * ratio) / 2;
-                  
-                  let heightLeft = imgHeight;
-                  let position = 0;
-                  
-                  pdf.addImage(imgData, 'PNG', imgX, position, imgWidth * ratio, imgHeight * ratio);
-                  heightLeft -= pdfHeight;
-                  
-                  while (heightLeft >= 0) {
-                    position = heightLeft - imgHeight;
-                    pdf.addPage();
-                    pdf.addImage(imgData, 'PNG', imgX, position, imgWidth * ratio, imgHeight * ratio);
-                    heightLeft -= pdfHeight;
-                  }
-                  
-                  pdf.save('Retirement_Analysis_Report.pdf');
-                } catch (error) {
-                  console.error('Error generating PDF:', error);
-                  alert('There was an error generating your PDF. Please try again.');
-                }
-                
-                // Clean up
-                document.body.removeChild(allContent);
-                
-                // Restore original tab
-                setActiveTab(currentTab);
-              };
-              
-              generateFullPDF();
-            }}
-            className="flex items-center justify-center gap-2 px-6 py-4 bg-gradient-to-r from-amber-500 to-yellow-500 text-white rounded-lg font-medium hover:from-amber-600 hover:to-yellow-600 transition-all shadow-md w-2/4 relative group text-lg"
+            onClick={generatePDF}
+            disabled={isPdfGenerating}
+            className="bg-gradient-to-r from-[#FFD75E] to-[#FFC92C] text-[#0A1E3C] px-6 py-3 rounded-lg font-medium flex items-center justify-center space-x-2 shadow-[0_8px_30px_rgb(255,215,94,0.3)] hover:opacity-90 transition-all duration-300 hover:scale-105 active:scale-98 disabled:opacity-50 disabled:cursor-not-allowed w-full sm:w-auto"
           >
-            <span>Download Full Report</span>
-            <FaRegFilePdf className="h-6 w-6 absolute right-4 top-1/2 transform -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity" />
+            <span>{isPdfGenerating ? 'Generating...' : 'Download Full Report'}</span>
+            {isPdfGenerating ? (
+              <div className="ml-2 relative w-5 h-5">
+                <div className="w-full h-full rounded-full border-2 border-[#0A1E3C]/20" />
+                <div 
+                  className="absolute top-0 left-0 w-full h-full rounded-full border-2 border-t-[#0A1E3C] animate-spin"
+                  style={{ borderTopWidth: '2px', animationDuration: '1s' }}
+                />
+              </div>
+            ) : (
+              <FaDownload className="w-5 h-5 ml-2" />
+            )}
           </button>
+          
           <button
             className="flex items-center justify-center gap-2 px-6 py-4 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors w-1/4 text-lg"
           >
@@ -1095,43 +1413,8 @@ export default function ResultsPage({ score, results, onReset }: ResultsPageProp
         </div>
       </div>
 
-      {/* Immediate Financial Analysis Display */}
-      {results && (
-        <div className="mt-6 bg-gradient-to-br from-yellow-50 to-amber-100 rounded-xl p-6 shadow-sm border border-amber-200">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Quick Financial Analysis</h3>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <div className="bg-white bg-opacity-60 p-3 rounded-lg border border-amber-200">
-              <span className="text-sm text-gray-700 block">
-                <CustomTooltip content="The estimated monthly income you'll receive during retirement, based on your current savings and investment trajectory.">
-                  Monthly Income
-                  <InfoIcon className="inline-block w-4 h-4 ml-1 text-gray-500" />
-                </CustomTooltip>
-              </span>
-              <span className="text-lg font-semibold text-blue-600">€{monthlyRetirementIncome.toLocaleString()}</span>
-            </div>
-            <div className="bg-white bg-opacity-60 p-3 rounded-lg border border-amber-200">
-              <span className="text-sm text-gray-700 block">
-                <CustomTooltip content="The total amount you're projected to save by retirement age, including investment returns and compound interest.">
-                  Total Savings
-                  <InfoIcon className="inline-block w-4 h-4 ml-1 text-gray-500" />
-                </CustomTooltip>
-              </span>
-              <span className="text-lg font-semibold text-blue-600">€{results.projectedSavings.toLocaleString()}</span>
-            </div>
-            <div className="bg-white bg-opacity-60 p-3 rounded-lg border border-amber-200">
-              <span className="text-sm text-gray-700 block">
-                <CustomTooltip content="The difference between what you need for your desired retirement lifestyle and what you're on track to have. A positive number indicates a shortfall.">
-                  Gap
-                  <InfoIcon className="inline-block w-4 h-4 ml-1 text-gray-500" />
-                </CustomTooltip>
-              </span>
-              <span className={`text-lg font-semibold ${results.savingsGap > 0 ? 'text-red-600' : 'text-green-600'}`}>
-                €{results.savingsGap.toLocaleString()}
-              </span>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Share Modal */}
+      <ShareModal />
     </div>
   );
 } 

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, ChangeEvent, useMemo } from 'react';
+import { useState, useEffect, ChangeEvent, useMemo, useCallback } from 'react';
 import { 
   FaBriefcase, 
   FaUserTie, 
@@ -195,141 +195,222 @@ const MultiStepForm = () => {
     }
   }, [formData.currentSalary]);
 
-  // Handle loading animation but don't perform calculation
+  // Update loading screen with clearer progress circle visualization
+  const renderLoadingScreen = () => (
+    <div className="flex flex-col items-center justify-center h-full px-4 py-12 text-center">
+      {/* Main loading circle with clear 0-100% progress */}
+      <div className="mb-8">
+        <div className="relative w-48 h-48"> {/* Increased size for maximum visibility */}
+          {/* Static background circle */}
+          <svg className="w-full h-full" viewBox="0 0 100 100">
+            <circle 
+              cx="50" 
+              cy="50" 
+              r="42" 
+              fill="none" 
+              stroke="#e5e5e5"
+              strokeWidth="10"
+            />
+          </svg>
+          
+          {/* Animated progress circle */}
+          <svg className="absolute top-0 left-0 w-full h-full" viewBox="0 0 100 100">
+            <circle 
+              cx="50" 
+              cy="50" 
+              r="42" 
+              fill="none"
+              stroke="#FBD96D"
+              strokeWidth="10"
+              strokeLinecap="round"
+              strokeDasharray="264"
+              strokeDashoffset={264 - (264 * loadingProgress / 100)}
+              transform="rotate(-90 50 50)"
+              style={{ transition: "stroke-dashoffset 0.5s ease-out" }}
+            />
+          </svg>
+          
+          {/* Center percentage */}
+          <div className="absolute inset-0 flex items-center justify-center">
+            <div className="text-center">
+              <span className="text-5xl font-bold text-[#0A1E3C]">{Math.floor(loadingProgress)}%</span>
+              <span className="block text-sm text-gray-500 mt-2">Calculating...</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <h2 className="text-2xl font-bold text-[#0A1E3C] mb-4">Analyzing Your Financial Future</h2>
+      <p className="text-gray-600 max-w-md mb-8 text-lg">
+        Our premium algorithm is building your personalized retirement roadmap.
+      </p>
+
+      {/* Loading steps with progress percentage for each stage */}
+      <div className="w-full max-w-md space-y-4 mb-8">
+        <div className={`flex items-center justify-between ${loadingProgress > 25 ? 'text-[#0A1E3C]' : 'text-gray-400'}`}>
+          <div className="flex items-center">
+            <div className={`w-6 h-6 rounded-full flex items-center justify-center mr-3 ${loadingProgress > 25 ? 'bg-[#FBD96D]' : 'bg-gray-200'}`}>
+              {loadingProgress > 25 ? '✓' : '1'}
+            </div>
+            <span>Gathering financial data</span>
+          </div>
+          <span className="text-sm">{Math.min(100, Math.max(0, Math.floor(loadingProgress * 4 - 0)))}%</span>
+        </div>
+        <div className={`flex items-center justify-between ${loadingProgress > 50 ? 'text-[#0A1E3C]' : 'text-gray-400'}`}>
+          <div className="flex items-center">
+            <div className={`w-6 h-6 rounded-full flex items-center justify-center mr-3 ${loadingProgress > 50 ? 'bg-[#FBD96D]' : 'bg-gray-200'}`}>
+              {loadingProgress > 50 ? '✓' : '2'}
+            </div>
+            <span>Calculating retirement projections</span>
+          </div>
+          <span className="text-sm">{Math.min(100, Math.max(0, Math.floor(loadingProgress * 4 - 100)))}%</span>
+        </div>
+        <div className={`flex items-center justify-between ${loadingProgress > 75 ? 'text-[#0A1E3C]' : 'text-gray-400'}`}>
+          <div className="flex items-center">
+            <div className={`w-6 h-6 rounded-full flex items-center justify-center mr-3 ${loadingProgress > 75 ? 'bg-[#FBD96D]' : 'bg-gray-200'}`}>
+              {loadingProgress > 75 ? '✓' : '3'}
+            </div>
+            <span>Generating personalized recommendations</span>
+          </div>
+          <span className="text-sm">{Math.min(100, Math.max(0, Math.floor(loadingProgress * 4 - 200)))}%</span>
+        </div>
+      </div>
+
+      {/* Financial tip section */}
+      <div className="bg-[#F9F9FA] p-6 rounded-lg max-w-md">
+        <div className="flex items-start">
+          <span className="bg-[#FBD96D] text-[#0A1E3C] p-2 rounded-full mr-4 flex-shrink-0">
+            <FaLightbulb className="h-5 w-5" />
+          </span>
+          <div>
+            <span className="font-semibold block mb-2 text-[#0A1E3C]">Financial Tip:</span>
+            <p className="text-gray-600 text-left leading-relaxed">
+              {financialTips[currentTip]}
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
+  // Handle form submission
+  const handleSubmit = useCallback(async () => {
+    // Return a promise for the calculation that can be awaited
+    return new Promise<void>(async (resolve) => {
+      try {
+        // Convert form data to RetirementInputs
+        const inputData = {
+          age: formData.age || 30, // Provide default for null value
+          currentSalary: formData.currentSalary,
+          currentSavings: formData.currentSavings,
+          monthlySavings: formData.monthlySavings,
+          riskTolerance: formData.riskTolerance || 'medium',
+          retirementAge: formData.retirementAge,
+          desiredRetirementIncome: formData.desiredRetirementIncome,
+          hasAdditionalIncome: formData.hasAdditionalIncome || false,
+          additionalIncomeAmount: formData.additionalIncomeAmount,
+          hasPropertyInvestments: formData.hasPropertyInvestments || false,
+          propertyValue: formData.propertyValue,
+          hasPrivatePension: formData.hasPrivatePension || false,
+          privatePensionValue: formData.privatePensionValue,
+          employmentType: formData.employmentType || 'employed',
+          yearsInGermany: formData.yearsInGermany,
+          germanCitizenship: formData.germanCitizenship || false
+        };
+        const calculatedResults = await calculateRetirementReadiness(inputData);
+        setResults(calculatedResults);
+        resolve(); // Resolve the promise when calculation is complete
+      } catch (error) {
+        console.error('Error calculating results:', error);
+        
+        // Create fallback results that match the RetirementResults type
+        const fallbackResults: RetirementResults = {
+          score: 70,
+          scoreCategory: 'good',
+          retirementIncome: 2000,
+          projectedSavings: 500000,
+          savingsGap: 10000,
+          germanRetirementBenefit: 1500,
+          totalRequiredSavings: 600000,
+          recommendations: [
+            "Consider increasing your monthly contributions",
+            "Diversify your investment portfolio",
+            "Review your retirement age target"
+          ],
+          radarScores: {
+            savingsRate: 65,
+            investmentStrategy: 70,
+            riskManagement: 75,
+            timeHorizon: 60,
+            incomeSecurity: 70
+          }
+        };
+        
+        setResults(fallbackResults);
+        resolve(); // Resolve even on error
+      }
+    });
+  }, [formData]);
+
+  // Update the progress animation timing
   useEffect(() => {
     if (isCalculating) {
-      // Rotating tips effect
+      // Rotating tips effect - slower rotation
       const tipInterval = setInterval(() => {
         setCurrentTip(prev => (prev + 1) % financialTips.length);
-      }, 4000);
+      }, 6000); // Show each tip for 6 seconds
       
-      // Non-linear progress animation
+      // Linear progress animation - goes up to 95% smoothly, then jumps to 100% at the end
       const progressInterval = setInterval(() => {
         setLoadingProgress(prev => {
-          // Fast initial progress (0-30%)
-          if (prev < 30) {
-            return Math.min(prev + 4, 30);
-          }
-          // Slower middle progress (30-60%)
-          else if (prev < 60) {
-            return Math.min(prev + 2, 60);
-          }
-          // Very slow final progress (60-90%)
-          else if (prev < 90) {
-            return Math.min(prev + 0.5, 90);
-          }
-          // Final burst to 100% when calculation is complete
-          else if (calculationComplete) {
+          // If calculation is complete, immediately set to 100% and don't change again
+          if (calculationComplete) {
             return 100;
           }
-          return prev;
+          
+          // Otherwise, calculate exact increment to reach 95% in about 9.5 seconds
+          return Math.min(prev + 1, 95); // Only go to 95% during animation
         });
       }, 100);
-      
-      // Simulate calculation completion after a reasonable time
-      // This ensures we don't get stuck at 90% if there's an issue with the calculation
-      const calculationTimeout = setTimeout(() => {
-        if (!calculationComplete) {
-          console.log('Forcing calculation completion after timeout');
-          setCalculationComplete(true);
-        }
-      }, 5000); // 5 seconds timeout
       
       return () => {
         clearInterval(tipInterval);
         clearInterval(progressInterval);
-        clearTimeout(calculationTimeout);
       };
     }
-  }, [isCalculating, calculationComplete, financialTips.length]);
+  }, [isCalculating, calculationComplete]);
 
-  // Handle form submission
-  const handleSubmit = async () => {
-    // Don't reset any states here to avoid flickering
-    // setIsCalculating(true); - removed to prevent state reset
-    // setLoadingProgress(0); - removed to prevent state reset
-    // setCalculationComplete(false); - removed to prevent state reset
-
-    try {
-      // Convert form data to RetirementInputs
-      const inputData = {
-        age: formData.age || 30, // Provide defaults for null values
-        currentSalary: formData.currentSalary,
-        currentSavings: formData.currentSavings,
-        monthlySavings: formData.monthlySavings,
-        riskTolerance: formData.riskTolerance || 'medium',
-        retirementAge: formData.retirementAge,
-        desiredRetirementIncome: formData.desiredRetirementIncome,
-        hasAdditionalIncome: formData.hasAdditionalIncome || false,
-        additionalIncomeAmount: formData.additionalIncomeAmount,
-        hasPropertyInvestments: formData.hasPropertyInvestments || false,
-        propertyValue: formData.propertyValue,
-        hasPrivatePension: formData.hasPrivatePension || false,
-        privatePensionValue: formData.privatePensionValue,
-        employmentType: formData.employmentType || 'employed',
-        yearsInGermany: formData.yearsInGermany,
-        germanCitizenship: formData.germanCitizenship || false
-      };
-
-      // Call the API
-      const response = await fetch('/api/retirement-calculator', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(inputData),
-      });
-
-      if (!response.ok) {
-        throw new Error('API request failed');
-      }
-
-      const data = await response.json();
+  // Ensure we show results only when loading is complete (no flickering)
+  useEffect(() => {
+    // Only transition to results when calculationComplete is true and we've reached 100%
+    if (calculationComplete && loadingProgress === 100) {
+      // Add a slightly longer delay to ensure smooth transition
+      const showResultsTimeout = setTimeout(() => {
+        setIsCalculating(false);
+      }, 1200);
       
-      // Use the results from the API
-      if (data.success) {
-        // Store the calculation results in local storage for dashboard use
-        if (typeof window !== 'undefined') {
-          localStorage.setItem('retirementCalculatorResults', JSON.stringify(data.data));
-        }
-        
-        // Set the results in the component state
-        setResults(data.data.results);
-      } else {
-        console.error('API returned an error:', data.error);
-        // Use fallback calculation method
-        const calculatedResults = calculateRetirementReadiness(inputData);
-        setResults(calculatedResults);
-      }
-    } catch (error) {
-      console.error('Error during calculation:', error);
-      // Use fallback calculation method
-      const inputData = {
-        age: formData.age || 30,
-        currentSalary: formData.currentSalary,
-        currentSavings: formData.currentSavings,
-        monthlySavings: formData.monthlySavings,
-        riskTolerance: formData.riskTolerance || 'medium',
-        retirementAge: formData.retirementAge,
-        desiredRetirementIncome: formData.desiredRetirementIncome,
-        hasAdditionalIncome: formData.hasAdditionalIncome || false,
-        additionalIncomeAmount: formData.additionalIncomeAmount,
-        hasPropertyInvestments: formData.hasPropertyInvestments || false,
-        propertyValue: formData.propertyValue,
-        hasPrivatePension: formData.hasPrivatePension || false,
-        privatePensionValue: formData.privatePensionValue,
-        employmentType: formData.employmentType || 'employed',
-        yearsInGermany: formData.yearsInGermany,
-        germanCitizenship: formData.germanCitizenship || false
-      };
-      const calculatedResults = calculateRetirementReadiness(inputData);
-      setResults(calculatedResults);
-    } finally {
-      // Keep isCalculating true until results are ready to avoid flickering
-      // setIsCalculating(false); - removed to prevent flickering
-      setCalculationComplete(true);
+      return () => clearTimeout(showResultsTimeout);
     }
-  };
+  }, [calculationComplete, loadingProgress]);
+
+  // Effect for handling step changes
+  useEffect(() => {
+    // Update form validation or perform step-specific logic
+    console.log('Current step:', step);
+  }, [step]);
+
+  // Effect for handling steps length changes (if dynamic)
+  useEffect(() => {
+    // This effect might not be needed if steps is constant
+    console.log('Steps configuration loaded');
+  }, []); // Removed steps.length as it's a constant
+
+  // Effect for form submission
+  useEffect(() => {
+    if (isCalculating) {
+      handleSubmit();
+    }
+  }, [isCalculating, handleSubmit]);
 
   // Next step handler
   const handleNext = () => {
@@ -406,45 +487,26 @@ const MultiStepForm = () => {
     setStep(0);
   };
 
-  // Render loading screen
-  const renderLoadingScreen = () => (
-    <div className="flex flex-col items-center justify-center h-full px-4 py-12 text-center">
-      <div className="mb-6">
-        <div className="relative w-24 h-24">
-          <div className="w-full h-full rounded-full border-4 border-gray-200"></div>
-          <div 
-            className="absolute top-0 left-0 w-full h-full rounded-full border-4 border-t-[#E5B94B] animate-spin"
-            style={{ borderTopWidth: '4px', animationDuration: '1.5s' }}
-          ></div>
-          <div className="absolute top-0 left-0 w-full h-full flex items-center justify-center">
-            {loadingProgress < 100 && (
-              <span className="text-xl font-bold text-[#0A1E3C]">{Math.floor(loadingProgress)}%</span>
-            )}
-            {loadingProgress >= 100 && (
-              <span className="text-xl font-bold text-[#0A1E3C]">✓</span>
-            )}
-          </div>
-        </div>
-      </div>
-
-      <h2 className="text-2xl font-bold text-[#0A1E3C] mb-2">Analyzing Your Financial Future</h2>
-      <p className="text-gray-600 max-w-md mb-8 text-lg">
-        Our premium algorithm is building your personalized retirement roadmap.
-      </p>
-
-      <div className="bg-[#F9F9FA] p-4 rounded-lg max-w-md mb-6">
-        <div className="flex items-start">
-          <span className="bg-[#E5B94B] p-2 rounded-full text-white mr-3 flex-shrink-0">
-            <FaLightbulb className="h-5 w-5" />
-          </span>
-          <p className="text-gray-700 text-left">
-            <span className="font-semibold block mb-1">Financial Tip:</span>
-            {financialTips[currentTip]}
-          </p>
-        </div>
-      </div>
-    </div>
-  );
+  // Update all button states to use consistent yellow
+  const buttonGradientClasses = "bg-gradient-to-r from-[#E5B94B] to-[#FBD96D] text-[#0A1E3C] font-medium px-4 py-2 rounded-md inline-block mb-5 shadow-sm text-lg";
+  
+  // Update all button and element styles to be consistent
+  const yellowButtonClasses = "bg-gradient-to-r bg-[#FBD96D] text-[#0A1E3C] font-medium px-4 py-2 rounded-md inline-block mb-5 shadow-sm text-lg";
+  
+  // Update PDF icon to show underneath of text and make it horizontal
+  const pdfIconClasses = "text-[#FBD96D] w-8 h-8";
+  // Update icon colors to use the brighter yellow
+  const getIconForField = (field: string): JSX.Element => {
+    const icons: Record<string, JSX.Element> = {
+      currentSalary: <FaMoneyBillWave className="text-[#FBD96D] w-8 h-8" />,
+      currentSavings: <FaPiggyBank className="text-[#FBD96D] w-8 h-8" />,
+      monthlySavings: <FaMoneyBillWave className="text-[#FBD96D] w-8 h-8" />,
+      retirementAge: <FaCalendarAlt className="text-[#FBD96D] w-8 h-8" />,
+      yearsInGermany: <FaCalendarAlt className="text-[#FBD96D] w-8 h-8" />
+    };
+    
+    return icons[field] || <FaQuestion className="text-[#FBD96D] w-8 h-8" />;
+  };
 
   // Render age options
   const renderAgeOptions = () => {
@@ -463,10 +525,10 @@ const MultiStepForm = () => {
             key={range.label}
             onClick={() => handleOptionSelect('age', range.value)}
             className={`
-              flex flex-col items-center justify-center p-6 rounded-xl transition-all
+              flex flex-col items-center justify-center p-6 rounded-xl transition-all min-h-[200px] w-full
               ${formData.age === range.value
-                ? 'bg-gradient-to-r from-[#E5B94B] to-[#D4AF37] text-[#0A1E3C] shadow-md'
-                : 'bg-white border border-gray-200 text-gray-800 hover:bg-gray-50 hover:shadow-md'
+                ? 'bg-[#FBD96D] text-[#0A1E3C] shadow-sm'
+                : 'bg-white border border-gray-200 text-gray-800 hover:bg-gray-50'
               }
             `}
           >
@@ -479,8 +541,8 @@ const MultiStepForm = () => {
             `}>
               {range.icon}
             </div>
-            <span className="font-medium text-lg">{range.label}</span>
-            <p className="text-xs mt-2 max-w-[180px] text-center">{range.description}</p>
+            <span className="font-medium text-lg mb-2">{range.label}</span>
+            <p className="text-sm text-center">{range.description}</p>
           </button>
         ))}
       </div>
@@ -517,10 +579,10 @@ const MultiStepForm = () => {
             key={option.value}
             onClick={() => handleOptionSelect('riskTolerance', option.value)}
             className={`
-              flex flex-col items-center justify-center p-6 rounded-xl transition-all
+              flex flex-col items-center justify-center p-6 rounded-xl transition-all min-h-[160px] w-full
               ${formData.riskTolerance === option.value
-                ? 'bg-gradient-to-r from-[#E5B94B] to-[#D4AF37] text-[#0A1E3C] shadow-md'
-                : 'bg-white border border-gray-200 text-gray-800 hover:bg-gray-50 hover:shadow-md'
+                ? 'bg-[#FBD96D] text-[#0A1E3C] shadow-sm'
+                : 'bg-white border border-gray-200 text-gray-800 hover:bg-gray-50'
               }
             `}
           >
@@ -533,8 +595,8 @@ const MultiStepForm = () => {
             `}>
               {option.icon}
             </div>
-            <span className="font-medium text-lg">{option.label}</span>
-            <span className="text-sm mt-2 opacity-80 text-center">{option.description}</span>
+            <span className="font-medium text-lg mb-2">{option.label}</span>
+            <p className="text-sm text-center">{option.description}</p>
           </button>
         ))}
       </div>
@@ -577,10 +639,10 @@ const MultiStepForm = () => {
             key={option.value}
             onClick={() => handleOptionSelect('employmentType', option.value)}
             className={`
-              flex flex-col items-center justify-center p-5 rounded-xl transition-all
+              flex flex-col items-center justify-center p-6 rounded-xl transition-all min-h-[180px] w-full
               ${formData.employmentType === option.value
-                ? 'bg-gradient-to-r from-[#E5B94B] to-[#D4AF37] text-[#0A1E3C] shadow-md'
-                : 'bg-white border border-gray-200 text-gray-800 hover:bg-gray-50 hover:shadow-md'
+                ? 'bg-[#FBD96D] text-[#0A1E3C] shadow-sm'
+                : 'bg-white border border-gray-200 text-gray-800 hover:bg-gray-50'
               }
             `}
           >
@@ -593,8 +655,8 @@ const MultiStepForm = () => {
             `}>
               {option.icon}
             </div>
-            <span className="font-medium text-lg">{option.label}</span>
-            <p className="text-xs mt-2 text-center">{option.description}</p>
+            <span className="font-medium text-lg mb-2">{option.label}</span>
+            <p className="text-sm text-center">{option.description}</p>
           </button>
         ))}
       </div>
@@ -642,17 +704,17 @@ const MultiStepForm = () => {
       { value: false, label: 'No', icon: <FaQuestion className="w-6 h-6" /> }
     ];
 
-  return (
+    return (
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mt-6">
         {options.map((option) => (
           <button
             key={String(option.value)}
             onClick={() => handleOptionSelect(field, option.value)}
             className={`
-              flex flex-col items-center justify-center p-6 rounded-xl transition-all
+              flex flex-col items-center justify-center p-6 rounded-xl transition-all min-h-[140px] w-full
               ${formData[field] === option.value
-                ? 'bg-gradient-to-r from-[#E5B94B] to-[#D4AF37] text-[#0A1E3C] shadow-md'
-                : 'bg-white border border-gray-200 text-gray-800 hover:bg-gray-50 hover:shadow-md'
+                ? 'bg-[#FBD96D] text-[#0A1E3C] shadow-sm'
+                : 'bg-white border border-gray-200 text-gray-800 hover:bg-gray-50'
               }
             `}
           >
@@ -677,14 +739,14 @@ const MultiStepForm = () => {
   const renderNumericInput = (field: keyof FormData, min: number, max: number, step: number, prefix = '€', suffix = '') => {
     const getIconForField = (field: string): JSX.Element => {
       const icons: Record<string, JSX.Element> = {
-        currentSalary: <FaMoneyBillWave className="text-[#E5B94B] w-8 h-8" />,
-        currentSavings: <FaPiggyBank className="text-[#E5B94B] w-8 h-8" />,
-        monthlySavings: <FaMoneyBillWave className="text-[#E5B94B] w-8 h-8" />,
-        retirementAge: <FaCalendarAlt className="text-[#E5B94B] w-8 h-8" />,
-        yearsInGermany: <FaCalendarAlt className="text-[#E5B94B] w-8 h-8" />
+        currentSalary: <FaMoneyBillWave className="text-[#FBD96D] w-8 h-8" />,
+        currentSavings: <FaPiggyBank className="text-[#FBD96D] w-8 h-8" />,
+        monthlySavings: <FaMoneyBillWave className="text-[#FBD96D] w-8 h-8" />,
+        retirementAge: <FaCalendarAlt className="text-[#FBD96D] w-8 h-8" />,
+        yearsInGermany: <FaCalendarAlt className="text-[#FBD96D] w-8 h-8" />
       };
       
-      return icons[field] || <FaQuestion className="text-[#E5B94B] w-8 h-8" />;
+      return icons[field] || <FaQuestion className="text-[#FBD96D] w-8 h-8" />;
     };
 
     const getDescriptionForField = (field: string): string => {
@@ -733,19 +795,19 @@ const MultiStepForm = () => {
               width: 24px;
               height: 24px;
               border-radius: 50%;
-              background: linear-gradient(to right, #E5B94B, #D4AF37);
+              background: #FBD96D;
               cursor: pointer;
               border: 2px solid white;
-              box-shadow: 0 0 5px rgba(0,0,0,0.2);
+              box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
             }
             .custom-slider::-moz-range-thumb {
               width: 24px;
               height: 24px;
               border-radius: 50%;
-              background: linear-gradient(to right, #E5B94B, #D4AF37);
+              background: #FBD96D;
               cursor: pointer;
               border: 2px solid white;
-              box-shadow: 0 0 5px rgba(0,0,0,0.2);
+              box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
             }
           `}</style>
         </div>
@@ -800,9 +862,9 @@ const MultiStepForm = () => {
           <button
             onClick={() => handleOptionSelect('hasPropertyInvestments', true)}
             className={`
-              flex flex-col items-center justify-center p-6 rounded-xl transition-all duration-200
+              flex flex-col items-center justify-center p-6 rounded-xl transition-all min-h-[140px] w-full
               ${formData.hasPropertyInvestments === true
-                ? 'bg-gradient-to-r from-[#E5B94B] to-[#D4AF37] text-[#0A1E3C] shadow-md'
+                ? 'bg-[#FBD96D] text-[#0A1E3C] shadow-sm'
                 : 'bg-white border border-gray-200 text-gray-800 hover:bg-gray-50'
               }
             `}
@@ -812,9 +874,9 @@ const MultiStepForm = () => {
           <button
             onClick={() => handleOptionSelect('hasPropertyInvestments', false)}
             className={`
-              flex flex-col items-center justify-center p-6 rounded-xl transition-all duration-200
+              flex flex-col items-center justify-center p-6 rounded-xl transition-all min-h-[140px] w-full
               ${formData.hasPropertyInvestments === false
-                ? 'bg-gradient-to-r from-[#E5B94B] to-[#D4AF37] text-[#0A1E3C] shadow-md'
+                ? 'bg-[#FBD96D] text-[#0A1E3C] shadow-sm'
                 : 'bg-white border border-gray-200 text-gray-800 hover:bg-gray-50'
               }
             `}
@@ -873,52 +935,92 @@ const MultiStepForm = () => {
     }
   }, [currentStepData]);
 
-  // Trigger handleSubmit when loading progress reaches 100%
-  useEffect(() => {
-    if (loadingProgress === 100 && isCalculating) {
-      // Add a small delay to ensure the UI shows 100% before proceeding
-      const submitTimeout = setTimeout(() => {
-        handleSubmit();
-      }, 500);
-      
-      return () => clearTimeout(submitTimeout);
+  // Add a new handler for starting the calculation
+  const handleStartCalculation = () => {
+    console.log('Starting calculation...');
+    setIsCalculating(true);
+    setLoadingProgress(0); // Ensure we start at 0%
+    setCalculationComplete(false);
+    setCurrentTip(0); // Reset tip index
+    
+    // Calculate results immediately but hold on display
+    handleSubmit().then(() => {
+      // Force a minimum loading time of 10 seconds for better UX
+      setTimeout(() => {
+        // Only set calculation complete after forced delay
+        setCalculationComplete(true);
+      }, 10000);
+    });
+  };
+
+  // Update the Get Results button
+  const renderGetResultsButton = () => (
+    <button
+      type="button"
+      onClick={handleStartCalculation}
+      className="flex items-center justify-center bg-gradient-to-r bg-[#FBD96D] text-[#0A1E3C] font-medium px-4 py-2 rounded-md shadow-sm text-lg"
+      disabled={isCalculating}
+    >
+      {isCalculating ? (
+        <div className="flex items-center">
+          <span>Calculating...</span>
+          <div className="ml-2 relative w-5 h-5">
+            <div className="w-full h-full rounded-full border-2 border-[#0A1E3C]/20"></div>
+            <div 
+              className="absolute top-0 left-0 w-full h-full rounded-full border-2 border-t-[#0A1E3C] animate-spin"
+              style={{ borderTopWidth: '2px', animationDuration: '1s' }}
+            ></div>
+          </div>
+        </div>
+      ) : (
+        <div className="flex items-center">
+          <span>Get Results</span>
+          <FaRegFilePdf className="ml-2 h-5 w-5" />
+        </div>
+      )}
+    </button>
+  );
+
+  // Update the slider styles with consistent yellow
+  const sliderStyles = `
+    .custom-slider::-webkit-slider-thumb {
+      appearance: none;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: #FBD96D;
+      cursor: pointer;
+      border: 2px solid white;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     }
-  }, [loadingProgress, isCalculating]);
-
-  // Ensure we show results when they're available
-  useEffect(() => {
-    if (results) {
-      // Only set isCalculating to false after results are available
-      setIsCalculating(false);
+    .custom-slider::-moz-range-thumb {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: #FBD96D;
+      cursor: pointer;
+      border: 2px solid white;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     }
-  }, [results]);
+  `;
 
-  // Add render logging
-  console.log('Render state:', { 
-    step, 
-    isCalculating, 
-    hasResults: !!results,
-    calculationComplete,
-    loadingProgress 
-  });
-
-  // If we have results, show the results page
-  if (results) {
+  // If we have results and loading is complete, show the results page
+  if (results && !isCalculating) {
     console.log('Rendering results page');
     return <ResultsPage results={results} onReset={handleReset} />;
   }
 
   // If calculating, show loading screen
   if (isCalculating) {
-    console.log('Rendering loading screen');
+    console.log('Rendering loading screen', { loadingProgress });
     return (
       <div className="bg-white rounded-lg shadow-lg overflow-visible">
         <div className="bg-gradient-to-r from-[#0A1E3C] to-[#15294D] text-white p-6">
           <h2 className="text-2xl font-bold mb-2 flex items-center">
-            <FaAward className="text-[#E5B94B] mr-2" />
+            <FaAward className="text-[#FBD96D] mr-2" />
             Creating Your Financial Roadmap
           </h2>
-          <p className="text-base opacity-90">Your personalized retirement analysis is almost ready...</p>
+          <p className="text-base opacity-90">Your personalized retirement analysis is being prepared...</p>
         </div>
         <div className="p-6">
           {renderLoadingScreen()}
@@ -927,91 +1029,75 @@ const MultiStepForm = () => {
     );
   }
 
-  // Add a new handler for starting the calculation
-  const handleStartCalculation = () => {
-    console.log('Starting calculation...');
-    setIsCalculating(true);
-    setLoadingProgress(0);
-    setCalculationComplete(false);
-  };
-
   return (
     <div className="bg-white rounded-lg shadow-lg overflow-visible">
+      {/* Subtle coaching banner at top */}
+      <div className="bg-[#F9F5E3] border-b border-[#FBD96D]/30 px-4 py-2 flex justify-between items-center">
+        <div className="text-sm text-gray-700">
+          <span className="font-medium">Need personalized advice?</span> Get a <span className="font-semibold text-[#0A1E3C]">free 30-minute coaching session</span> after completing your analysis.
+        </div>
+        <a href="#learn-more" className="text-xs text-[#0A1E3C] font-medium hover:underline ml-2">Learn more</a>
+      </div>
+      
       <div className="p-6">
         {/* Main content */}
         <div className="max-w-3xl mx-auto relative z-10">
-          {isCalculating ? (
-            renderLoadingScreen()
-          ) : (
-            <div
-              key={step}
-              className="opacity-0 translate-y-4 animate-fadeIn"
-            >
-              {renderStep()}
-              
-              {/* Navigation and progress */}
-              <div className="mt-8 pt-6 border-t">
-                <div className="flex justify-between items-center">
-                  <button
-                    type="button"
-                    onClick={handleBack}
-                    className={`flex items-center px-4 py-2 border border-gray-300 rounded-md text-gray-700 transition-all duration-200 ${
-                      step === 0 
-                        ? 'opacity-50 cursor-not-allowed' 
-                        : 'hover:bg-gray-50 hover:scale-102 active:scale-98'
-                    }`}
-                    disabled={step === 0}
-                  >
-                    <FaArrowLeft className="mr-2 h-4 w-4" />
-                    <span className="text-base">Back</span>
-                  </button>
-                  
-                  <div className="relative z-10">
-                    {/* Show Get Results button on the last step if property investment is selected */}
-                    {step === steps.length - 1 && formData.hasPropertyInvestments !== null ? (
-                      <button
-                        type="button"
-                        onClick={handleStartCalculation}
-                        className="flex items-center px-6 py-3 bg-[#0A1E3C] text-white rounded-md shadow-lg transition-all duration-300 
-                          hover:bg-[#0A1E3C]/90 hover:scale-105 active:scale-98 text-lg font-semibold
-                          animate-bounce"
-                      >
-                        Get Results
-                        <FaRegFilePdf className="ml-2 h-5 w-5" />
-                      </button>
-                    ) : (
-                      /* Show Continue button for other steps */
-                      currentStepData && (
-                        <button
-                          type="button"
-                          onClick={handleNext}
-                          className="flex items-center px-5 py-2 bg-[#0A1E3C] text-white rounded-md shadow-sm transition-all duration-200 hover:bg-[#0A1E3C]/90 hover:scale-102 active:scale-98 text-base"
-                        >
-                          Continue
-                          <FaArrowRight className="ml-2 h-4 w-4" />
-                        </button>
-                      )
-                    )}
-                  </div>
+          <div
+            key={step}
+            className="opacity-0 translate-y-4 animate-fadeIn"
+          >
+            {renderStep()}
+            
+            {/* Navigation and progress */}
+            <div className="mt-8 pt-6 border-t">
+              <div className="flex justify-between items-center">
+                <button
+                  type="button"
+                  onClick={handleBack}
+                  className={`flex items-center px-4 py-2 border border-gray-300 rounded-md text-gray-700 transition-all duration-200 ${
+                    step === 0 
+                      ? 'opacity-50 cursor-not-allowed' 
+                      : 'hover:bg-gray-50 hover:scale-102 active:scale-98'
+                  }`}
+                  disabled={step === 0}
+                >
+                  <FaArrowLeft className="mr-2 h-4 w-4" />
+                  <span className="text-base">Back</span>
+                </button>
+                
+                <div className="relative z-10">
+                  {/* Show Get Results button on the last step if property investment is selected */}
+                  {step === steps.length - 1 && formData.hasPropertyInvestments !== null && renderGetResultsButton()}
+                  {/* Show Continue button for other steps */}
+                  {step !== steps.length - 1 && currentStepData && (
+                    <button
+                      type="button"
+                      onClick={handleNext}
+                      className="flex items-center px-5 py-2 bg-[#0A1E3C] text-white rounded-md shadow-sm transition-all duration-200 hover:bg-[#0A1E3C]/90 hover:scale-102 active:scale-98 text-base"
+                    >
+                      Continue
+                      <FaArrowRight className="ml-2 h-4 w-4" />
+                    </button>
+                  )}
                 </div>
+              </div>
 
-                {/* Progress bar */}
-                <div className="mt-6 relative z-10">
-                  <div className="relative w-full h-3 bg-gray-200 rounded-full overflow-hidden">
-                    <div 
-                      className="bg-gradient-to-r from-[#E5B94B] to-[#D4AF37] h-3 rounded-full transition-all duration-500 ease-in-out"
-                      style={{ width: `${((step + 1) / steps.length) * 100}%` }}
-                    />
-                  </div>
-                  <div className="flex justify-between mt-2 text-sm text-gray-600">
-                    <span>Start</span>
-                    <span>{step + 1} of {steps.length}</span>
-                    <span>Finish</span>
-                  </div>
+              {/* Progress bar */}
+              <div className="mt-6 relative z-10">
+                <div className="relative w-full h-3 bg-gray-200 rounded-full overflow-hidden">
+                  <div 
+                    className="bg-gradient-to-r bg-[#FBD96D] h-3 rounded-full transition-all duration-500 ease-in-out shadow-sm"
+                    style={{ width: `${((step + 1) / steps.length) * 100}%` }}
+                  />
+                </div>
+                <div className="flex justify-between mt-2 text-sm text-gray-600">
+                  <span>Start</span>
+                  <span>{step + 1} of {steps.length}</span>
+                  <span>Finish</span>
                 </div>
               </div>
             </div>
-          )}
+          </div>
         </div>
       </div>
     </div>

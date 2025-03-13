@@ -1,0 +1,122 @@
+{
+    "mcpServers": {
+      "Web Research": {
+        "command": "npx",
+        "args": [
+          "-y",
+          "@smithery/cli@latest",
+          "run",
+          "@mzxrai/mcp-webresearch",
+          "--config",
+          "\"{}\""
+        ]
+      },
+      "supabase": {
+        "command": "npx",
+        "args": ["-y", "@modelcontextprotocol/server-postgres", "postgresql://postgres:5M6JvgIYtZGiW3s8@aws-0-us-west-1.pooler.supabase.com:5432/postgres"]
+      },
+      "n8n Workflow Builder": {
+        "command": "npx",
+        "args": [
+          "-y",
+          "@smithery/cli@latest",
+          "run",
+          "@Jimmy974/n8n-workflow-builder",
+          "--config",
+          "\"{}\""
+        ]
+      },
+      "Knowledge Graph Memory Server": {
+        "command": "npx",
+        "args": [
+          "-y",
+          "@smithery/cli@latest",
+          "run",
+          "@smithery-ai/memory",
+          "--config",
+          "\"{}\""
+        ]
+      },
+      "iTerm": {
+        "command": "npx",
+        "args": [
+          "-y",
+          "@smithery/cli@latest",
+          "run",
+          "iterm-mcp",
+          "--config",
+          "\"{}\""
+        ]
+      },
+      "github": {
+        "command": "npx",
+        "args": [
+          "-y",
+          "@smithery/cli@latest",
+          "run",
+          "@smithery-ai/github",
+          "--config",
+          "\"{\\\"githubPersonalAccessToken\\\":\\\"YOUR_TOKEN_HERE\\\"}\""
+        ]
+      },
+      "TaskManager": {
+        "command": "npx",
+        "args": [
+          "-y",
+          "@smithery/cli@latest",
+          "run",
+          "@kazuph/mcp-taskmanager",
+          "--config",
+          "\"{}\""
+        ]
+      },
+      "Browser Tools": {
+        "command": "npx",
+        "args": [
+          "@agentdeskai/browser-tools-mcp@1.2.0"
+        ]
+      },
+      "FIRECRAwl": {
+        "command": "env",
+        "args": [
+          "FIRECRAWL_API_KEY=fc-9edcfde8a9f74a62afe02f8400946421",
+          "npx",
+          "-y",
+          "firecrawl-mcp"
+        ]
+      },
+      "Auto SEO Optimization": {
+        "command": "npx",
+        "args": [
+          "-y",
+          "@smithery/cli@latest",
+          "run",
+          "@smithery-ai/server-sequential-thinking",
+          "--config",
+          "\"{}\""
+        ]
+      },
+      "Browser Use": {
+        "command": "npx",
+        "args": [
+          "-y",
+          "@smithery/cli@latest",
+          "run",
+          "@Deploya-labs/mcp-browser-use",
+          "--config",
+          "\"{\\\"OPENROUTER_API_KEY\\\":\\\"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\\\",\\\"MCP_MODEL_NAME\\\":\\\"anthropic/claude-3.7-sonnet\\\",\\\"BROWSER_HEADLESS\\\":\\\"true\\\"}\""
+        ]
+      },
+      "sequental thinking": {
+        "command": "npx",
+        "args": [
+          "-y",
+          "@smithery/cli@latest",
+          "run",
+          "@smithery-ai/server-sequential-thinking",
+          "--config",
+          "\"{}\""
+        ]
+      }
+    }
+  }

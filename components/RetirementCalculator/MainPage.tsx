@@ -14,7 +14,7 @@ export default function MainPage() {
           <div className="lg:w-1/2 mb-8 lg:mb-0">
             <div className="mb-8">
               <h1 className="text-4xl font-bold text-[#0A1E3C] mb-3">Retirement Planning for Expats in Germany</h1>
-              <div className="bg-gradient-to-r from-[#E5B94B] to-[#D4AF37] text-[#0A1E3C] font-medium px-4 py-2 rounded-md inline-block mb-5 shadow-sm text-lg">
+              <div className="bg-gradient-to-r from-[#E5B94B] to-[#FBD96D] text-[#0A1E3C] font-medium px-4 py-2 rounded-md inline-block mb-5 shadow-sm text-lg">
                 Get Your Free Retirement Readiness Score
               </div>
               <p className="text-xl text-gray-700 mb-6">
@@ -47,7 +47,7 @@ export default function MainPage() {
 
             {/* CTA Button */}
             <button
-              className="flex items-center bg-gradient-to-r from-[#E5B94B] to-[#D4AF37] text-[#0A1E3C] px-7 py-4 rounded-lg font-medium shadow-md hover:from-[#D4AF37] hover:to-[#C4A137] transition-all duration-300 text-lg"
+              className="flex items-center bg-gradient-to-r from-[#E5B94B] to-[#FBD96D] text-[#0A1E3C] px-7 py-4 rounded-lg font-medium shadow-md hover:from-[#D4AF37] hover:to-[#C4A137] transition-all duration-300 text-lg"
             >
               View Your Financial Dashboard
               <HiArrowRight className="w-5 h-5 ml-3" />
